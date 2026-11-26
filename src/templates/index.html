@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="fr" id="html-root">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>CyberRFP Maroc — Veille Intelligente Marchés Publics & DCE Direct</title>
+  
+  <!-- Apple iOS / iPhone Web App Capabilities -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CyberRFP DPA">
+  <link rel="apple-touch-icon" href="/static/dpa_logo.png">
+  <link rel="icon" type="image/png" href="/static/dpa_logo.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <!-- Google Fonts: Plus Jakarta Sans / Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    (function() {
+      const theme = localStorage.getItem('cyberrfp_theme');
+      if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+              950: '#022c22'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --bg-app: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-surface: #f1f5f9;
+      --border-subtle: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+    }
+    html.dark {
+      --bg-app: #080c15;
+      --bg-card: #0f172a;
+      --bg-surface: #1e293b;
+      --border-subtle: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      transition: background-color 0.15s ease, color 0.15s ease;
+      -webkit-font-smoothing: antialiased;
+    }
+    .card-modern {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card-modern:hover {
+      border-color: #10b981;
+      box-shadow: 0 12px 28px -6px rgba(16, 185, 129, 0.08), 0 8px 12px -4px rgba(0, 0, 0, 0.03);
+      transform: translateY(-2px);
+    }
+    .pill-active {
+      background-color: #059669;
+      color: #ffffff;
+      box-shadow: 0 2px 8px -1px rgba(5, 150, 105, 0.3);
+    }
+    .pill-inactive {
+      color: var(--text-muted);
+      background-color: transparent;
+    }
+    .pill-inactive:hover {
+      color: var(--text-main);
+      background-color: var(--bg-surface);
+    }
+    [dir="rtl"] .rtl-flip {
+      transform: scaleX(-1);
+    }
+    .toast-anim {
+      animation: slideInDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes slideInDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    /* Smooth custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 9999px;
+    }
+    html.dark ::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.4);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.6);
+    }
+
+    /* Scoped Dark Mode for Hudu Matrix Modal */
+    html.dark #submission-folder-modal > div {
+      background-color: #0b1120 !important;
+      border-color: #1e293b !important;
+      color: #f8fafc !important;
+    }
+    html.dark #submission-folder-modal .bg-white {
+      background-color: #0f172a !important;
+    }
+    html.dark #submission-folder-modal .bg-\[\#f8fafc\] {
+      background-color: #0b1120 !important;
+    }
+    html.dark #submission-folder-modal .border-slate-200,
+    html.dark #submission-folder-modal .border-slate-100 {
+      border-color: #1e293b !important;
+    }
+    html.dark #submission-folder-modal .text-slate-900,
+    html.dark #submission-folder-modal .text-slate-800 {
+      color: #f8fafc !important;
+    }
+    html.dark #submission-folder-modal .text-slate-700,
+    html.dark #submission-folder-modal .text-slate-600 {
+      color: #cbd5e1 !important;
+    }
+    html.dark #submission-folder-modal .text-slate-500 {
+      color: #94a3b8 !important;
+    }
+    html.dark #submission-folder-modal .bg-slate-50,
+    html.dark #submission-folder-modal .bg-slate-100 {
+      background-color: #1e293b !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased bg-slate-50 dark:bg-[#080c15] text-slate-800 dark:text-slate-100 overflow-x-hidden">
+  <h1 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:normal;">CyberRFP Maroc</h1>
+
+  <!-- ==================== TOP NAVIGATION BAR ==================== -->
+  <header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 border-b border-slate-200/90 dark:border-slate-800 text-slate-900 dark:text-white shadow-xs backdrop-blur-md transition-colors overflow-x-clip">
+    <div class="max-w-[1720px] mx-auto px-2 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-14 gap-1 sm:gap-3">
+        
+        <!-- Logo DPA & Marque -->
+        <div class="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
+          <div class="h-7 w-7 sm:h-9 sm:w-9 bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800/60 rounded-lg sm:rounded-xl flex items-center justify-center p-0.5 sm:p-1 shadow-2xs">
+            <img src="/static/dpa_logo.png" alt="DPA - DataProtech company" class="h-5 sm:h-6 w-auto object-contain">
+          </div>
+          <div class="flex items-center space-x-1.5 sm:space-x-2">
+            <span class="font-extrabold text-xs sm:text-base tracking-tight text-slate-900 dark:text-white">CyberRFP <span class="text-orange-500">Maroc</span></span>
+            <span class="hidden md:inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>PMMP DIRECT</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Center Navigation Tabs -->
+        <nav class="hidden lg:flex items-center space-x-1 bg-slate-100/90 dark:bg-slate-800/90 p-1 rounded-xl text-xs font-semibold border border-slate-200/60 dark:border-slate-700/60">
+          <button onclick="switchTab('tenders'); setCategoryFilter('ALL');" id="tab-nav-all" class="px-3 py-1.5 rounded-lg text-white bg-slate-900 dark:bg-slate-700 flex items-center space-x-1.5 transition shadow-2xs">
+            <i data-lucide="layers" class="w-3.5 h-3.5 text-orange-400"></i>
+            <span id="nav-all">Toutes les Offres</span>
+          </button>
+          <button onclick="switchTab('tenders'); setCategoryFilter('CYBERSECURITY');" id="tab-nav-cyber" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50 flex items-center space-x-1.5 transition">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-500"></i>
+            <span id="nav-cyber">Cybersécurité & SSI</span>
+          </button>
+          <button onclick="togglePriorityOnly()" id="tab-nav-priority" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50 flex items-center space-x-1.5 transition">
+            <i data-lucide="star" class="w-3.5 h-3.5 text-amber-500"></i>
+            <span id="nav-priority">Acheteurs Prioritaires</span>
+          </button>
+          <button onclick="switchTab('pipeline')" id="tab-nav-pipeline" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50 flex items-center space-x-1.5 transition">
+            <i data-lucide="kanban" class="w-3.5 h-3.5 text-blue-500"></i>
+            <span id="nav-pipeline">Pipeline Commercial</span>
+          </button>
+          <button onclick="switchTab('admin')" id="tab-nav-admin" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50 flex items-center space-x-1.5 transition">
+            <i data-lucide="settings" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span id="nav-admin">Paramètres & Alertes</span>
+          </button>
+        </nav>
+
+        <!-- Right Side: Minimalist Action Group -->
+        <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
+          
+          <!-- Theme Toggle (Light / Dark) -->
+          <button onclick="toggleTheme()" id="btn-theme-toggle" class="p-1.5 sm:p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Basculer Mode Clair / Sombre">
+            <i data-lucide="moon" class="w-4 h-4"></i>
+          </button>
+
+          <!-- Language Selector -->
+          <div class="flex items-center p-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-[9px] sm:text-[11px] font-bold">
+            <button onclick="setLanguage('fr')" id="lang-fr" class="px-1 sm:px-2 py-0.5 rounded text-orange-500 font-bold bg-white dark:bg-slate-700 shadow-2xs">FR</button>
+            <button onclick="setLanguage('en')" id="lang-en" class="px-1 sm:px-2 py-0.5 rounded text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">EN</button>
+            <button onclick="setLanguage('ar')" id="lang-ar" class="px-1 sm:px-2 py-0.5 rounded text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">AR</button>
+          </div>
+
+          <!-- Mobile iPhone Button (Desktop QR helper) -->
+          <button onclick="openMobileQrModal()" id="btn-mobile-access" class="hidden md:inline-flex p-2 rounded-xl text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 transition" title="Accès iPhone & Mobile (Wi-Fi)">
+            <i data-lucide="smartphone" class="w-4 h-4"></i>
+          </button>
+
+          <!-- Notifications Bell -->
+          <div class="relative">
+            <button onclick="toggleNotificationMenu()" id="btn-notif-bell" class="relative p-1.5 sm:p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Alertes en direct">
+              <i data-lucide="bell" class="w-4 h-4 text-amber-500"></i>
+              <span id="notif-badge" class="hidden absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-xs">0</span>
+            </button>
+
+            <!-- Notification Dropdown Panel -->
+            <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-4 z-50 space-y-3">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <div class="flex items-center space-x-2">
+                  <i data-lucide="bell-ring" class="w-4 h-4 text-amber-500"></i>
+                  <span class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Alertes Nouveaux AO</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button onclick="testEmailNotificationFromUI()" class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline">Tester Email</button>
+                  <span class="text-slate-300 dark:text-slate-600">|</span>
+                  <button onclick="testOnScreenNotification()" class="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline">Tester Pop-Up</button>
+                </div>
+              </div>
+
+              <!-- Audio & Targeted alerts options -->
+              <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
+                <label class="flex items-center space-x-2 cursor-pointer select-none">
+                  <input type="checkbox" id="chk-audio-chime" checked onchange="toggleAudioChimeSetting()" class="w-3.5 h-3.5 rounded text-amber-500">
+                  <span class="text-[11px] text-slate-700 dark:text-slate-300" id="lbl-audio-chime">Sonnerie d'alerte (Chime sonore)</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer select-none">
+                  <input type="checkbox" id="chk-only-tracked-alerts" checked onchange="toggleOnlyTrackedAlerts(this.checked)" class="w-3.5 h-3.5 rounded text-amber-500">
+                  <span class="text-[11px] text-amber-600 dark:text-amber-300 font-bold" id="lbl-only-tracked-alerts">⭐ Uniquement mes AO suivis (Recommandé)</span>
+                </label>
+              </div>
+
+              <!-- Alerts history list -->
+              <div class="space-y-2 max-h-60 overflow-y-auto pr-1" id="notif-list-container">
+                <div class="text-center py-6 text-xs text-slate-400">
+                  <i data-lucide="bell-off" class="w-5 h-5 mx-auto mb-1 text-slate-400"></i>
+                  <span>En attente de nouvelles publications...</span>
+                </div>
+              </div>
+
+              <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                <span>Veille en direct (PMMP, Atlantic Re, Laprophan)</span>
+                <button onclick="clearNotificationList()" class="hover:text-slate-700 dark:hover:text-white">Effacer</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Direct Sync Button -->
+          <button onclick="triggerQuickSync()" id="btn-sync" class="hidden sm:inline-flex p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Interroger le portail PMMP en temps réel">
+            <i data-lucide="refresh-cw" class="w-4 h-4 text-emerald-600"></i>
+          </button>
+
+          <!-- Export CSV -->
+          <button onclick="exportTendersCSV()" class="hidden sm:inline-flex p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Exporter en Excel / CSV">
+            <i data-lucide="download" class="w-4 h-4 text-slate-400"></i>
+          </button>
+
+          <!-- User Menu Avatar & Dropdown -->
+          <div class="relative">
+            <button onclick="toggleUserDropdown()" id="btn-user-avatar-menu" class="flex items-center space-x-1 sm:space-x-2 p-0.5 sm:p-1 sm:pl-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+              <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-tr from-amber-500 to-orange-600 text-slate-950 font-black text-[10px] sm:text-xs flex items-center justify-center shadow-xs" id="header-user-avatar">
+                JD
+              </div>
+              <div class="hidden xl:block text-left leading-tight">
+                <span class="text-xs font-bold text-slate-900 dark:text-white block truncate max-w-[110px]" id="header-user-name">John Doe</span>
+                <span class="text-[9px] text-slate-400 block font-mono" id="header-user-email">john.doe@dpg-cyber.com</span>
+              </div>
+              <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 hidden sm:block"></i>
+            </button>
+
+            <!-- User Menu Dropdown -->
+            <div id="user-menu-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-2 z-50 text-xs space-y-1">
+              <div class="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+                <span class="font-bold text-slate-900 dark:text-white block">John Doe</span>
+                <span class="text-[11px] text-slate-400 font-mono block">john.doe@dpg-cyber.com</span>
+                <span class="inline-block mt-1 px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">DPA Cybersécurité</span>
+              </div>
+              <button onclick="switchTab('admin'); toggleUserDropdown();" class="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center space-x-2 transition">
+                <i data-lucide="settings" class="w-3.5 h-3.5 text-slate-400"></i>
+                <span>Paramètres & Alertes</span>
+              </button>
+              <button onclick="toggleTheme(); toggleUserDropdown();" class="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center space-x-2 transition">
+                <i data-lucide="moon" class="w-3.5 h-3.5 text-slate-400"></i>
+                <span>Basculer Thème</span>
+              </button>
+              <div class="pt-1 border-t border-slate-100 dark:border-slate-800">
+                <a href="/logout" class="w-full text-left px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center space-x-2 transition">
+                  <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                  <span>Déconnexion</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT (EXPANDED WORKSPACE) ==================== -->
+  <main class="max-w-[1720px] mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 w-full space-y-4 sm:space-y-5 overflow-x-clip">
+
+    <!-- KPI Metric Summary Ribbon (5 High-density columns) -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 sm:gap-3.5">
+      
+      <!-- KPI 1: Cybersécurité -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-2 sm:p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between transition-colors">
+        <div class="space-y-0.5 sm:space-y-1">
+          <span class="text-[9px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block" id="kpi-lbl-cyber">Cybersécurité & SSI</span>
+          <div class="flex items-baseline space-x-1 sm:space-x-2">
+            <span class="text-lg sm:text-2xl font-black text-emerald-600 dark:text-emerald-400" id="kpi-cyber-count">0</span>
+            <span class="text-[8px] sm:text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1 sm:px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800" id="kpi-badge-cyber">Recommandés</span>
+          </div>
+          <span class="text-[9px] sm:text-[11px] text-slate-400 dark:text-slate-500 block truncate" id="kpi-sub-cyber">Qualifiés par Détection IA</span>
+        </div>
+        <div class="w-7 h-7 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-800/60">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 sm:w-5 sm:h-5"></i>
+        </div>
+      </div>
+
+      <!-- KPI 2: Acheteurs Prioritaires -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-2 sm:p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between transition-colors">
+        <div class="space-y-0.5 sm:space-y-1">
+          <span class="text-[9px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block" id="kpi-lbl-priority">Acheteurs Prioritaires</span>
+          <div class="flex items-baseline space-x-1 sm:space-x-2">
+            <span class="text-lg sm:text-2xl font-black text-orange-600 dark:text-orange-400" id="kpi-priority-count">0</span>
+            <span class="text-[8px] sm:text-[10px] font-bold text-orange-800 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/60 px-1 sm:px-2 py-0.5 rounded-full border border-orange-200 dark:border-orange-800" id="kpi-badge-priority">Watchlist DPA</span>
+          </div>
+          <span class="text-[9px] sm:text-[11px] text-slate-400 dark:text-slate-500 block truncate" id="kpi-sub-priority">CNSS, DGI, OFPPT, ANRF...</span>
+        </div>
+        <div class="w-7 h-7 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0 border border-orange-100 dark:border-orange-800/60">
+          <i data-lucide="star" class="w-3.5 h-3.5 sm:w-5 sm:h-5"></i>
+        </div>
+      </div>
+
+      <!-- KPI 3: Volume Budget -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-2 sm:p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between transition-colors">
+        <div class="space-y-0.5 sm:space-y-1">
+          <span class="text-[9px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block" id="kpi-lbl-budget">Volume Budget Détecté</span>
+          <div class="flex items-baseline space-x-1 sm:space-x-2">
+            <span class="text-xs sm:text-xl font-black text-slate-900 dark:text-white" id="kpi-total-budget">0 DH</span>
+          </div>
+          <span class="text-[9px] sm:text-[11px] text-slate-400 dark:text-slate-500 block truncate" id="kpi-sub-budget">Total en dirhams TTC</span>
+        </div>
+        <div class="w-7 h-7 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 border border-blue-100 dark:border-blue-800/60">
+          <i data-lucide="coins" class="w-3.5 h-3.5 sm:w-5 sm:h-5"></i>
+        </div>
+      </div>
+
+      <!-- KPI 4: Échéances Urgentes (< 15j) -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-2 sm:p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between transition-colors">
+        <div class="space-y-0.5 sm:space-y-1">
+          <span class="text-[9px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block" id="kpi-lbl-urgent">Échéances < 15 jours</span>
+          <div class="flex items-baseline space-x-1 sm:space-x-2">
+            <span class="text-lg sm:text-2xl font-black text-rose-600 dark:text-rose-400" id="kpi-urgent-count">0</span>
+            <span class="text-[8px] sm:text-[10px] font-bold text-rose-800 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-1 sm:px-2 py-0.5 rounded-full border border-rose-200 dark:border-rose-800" id="kpi-badge-urgent">À traiter</span>
+          </div>
+          <span class="text-[9px] sm:text-[11px] text-slate-400 dark:text-slate-500 block truncate" id="kpi-sub-urgent">Délai de réponse imminent</span>
+        </div>
+        <div class="w-7 h-7 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-100 dark:border-rose-800/60">
+          <i data-lucide="clock" class="w-3.5 h-3.5 sm:w-5 sm:h-5"></i>
+        </div>
+      </div>
+
+      <!-- KPI 5: DCE Téléchargés / Alertes -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-2 sm:p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between transition-colors">
+        <div class="space-y-0.5 sm:space-y-1">
+          <span class="text-[9px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block" id="kpi-lbl-downloaded">DCE Téléchargés (DPA)</span>
+          <div class="flex items-baseline space-x-1 sm:space-x-2">
+            <span class="text-lg sm:text-2xl font-black text-purple-600 dark:text-purple-400" id="kpi-downloaded-count">0</span>
+            <span class="text-[8px] sm:text-[10px] font-bold text-purple-800 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-1 sm:px-2 py-0.5 rounded-full border border-purple-200 dark:border-purple-800" id="kpi-badge-downloaded">Sous Alerte</span>
+          </div>
+          <span class="text-[9px] sm:text-[11px] text-slate-400 dark:text-slate-500 block truncate" id="kpi-sub-downloaded">Surveillance modifications TDR</span>
+        </div>
+        <div class="w-7 h-7 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-100 dark:border-purple-800/60">
+          <i data-lucide="bell-ring" class="w-3.5 h-3.5 sm:w-5 sm:h-5"></i>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== VIEW 1: PMMP CONSULTATIONS LIST ==================== -->
+    <div id="view-tenders" class="space-y-4">
+
+      <!-- Executive Search & Unified Dropdown Filter Toolbar -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-3 transition-colors">
+        
+        <!-- Row 1: Search Bar with Autocomplete & Search Button -->
+        <div class="flex flex-col sm:flex-row gap-2.5 items-center">
+          <div class="relative flex-1 w-full" id="search-input-wrapper">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+            <input 
+              type="search" 
+              name="rfp_search_query"
+              id="filter-search" 
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              oninput="onSearchInput(this.value)" 
+              onfocus="showSearchSuggestions()" 
+              placeholder="Recherche : Réf (11/2026), Média (Le Matin, L'Économiste), Acheteur (Atlantic Re, Laprophan...), Technos..." 
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition font-medium"
+            >
+            <button id="btn-clear-search" onclick="clearSearchInput()" class="hidden absolute right-3 top-2.5 p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-white transition" title="Effacer">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+
+            <!-- Autocomplete Suggestions Dropdown -->
+            <div id="search-suggestions" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3 z-50 text-xs space-y-2">
+              <div class="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                <span>Suggestions rapides</span>
+                <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-bold">1-Clic</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5" id="suggestion-chips-container">
+                <button type="button" onmousedown="applySuggestion('Atlantic Re')" class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 font-semibold transition">🏛️ Atlantic Re (SCR)</button>
+                <button type="button" onmousedown="applySuggestion('Laprophan')" class="px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-900 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 font-semibold transition">🏢 Laprophan</button>
+                <button type="button" onmousedown="applySuggestion('Journal Le Matin')" class="px-2.5 py-1 rounded-lg bg-orange-50 dark:bg-orange-950/40 text-orange-900 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60 font-semibold transition">📰 Le Matin</button>
+                <button type="button" onmousedown="applySuggestion('Journal L\'Économiste')" class="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 font-semibold transition">📰 L'Économiste</button>
+                <button type="button" onmousedown="applySuggestion('Gouvernance SSI')" class="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 font-semibold transition">🛡️ Gouvernance SSI</button>
+                <button type="button" onmousedown="applySuggestion('EDR XDR')" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold transition">🔍 EDR / XDR</button>
+                <button type="button" onmousedown="applySuggestion('Firewall')" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold transition">🔥 Firewall</button>
+                <button type="button" onmousedown="applySuggestion('Audit Pentest')" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold transition">🎯 Pentest</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search & Reset Buttons -->
+          <div class="flex items-center space-x-2 shrink-0 w-full sm:w-auto">
+            <button onclick="loadTenders()" class="flex-1 sm:flex-initial px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 transition shadow-xs">
+              <i data-lucide="search" class="w-3.5 h-3.5"></i>
+              <span id="btn-search-text">Rechercher</span>
+            </button>
+            <button id="btn-toggle-mobile-filters" onclick="toggleMobileFilters()" class="sm:hidden px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl flex items-center justify-center space-x-1 border border-slate-200 dark:border-slate-700 transition" title="Afficher / Masquer les filtres avancés">
+              <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+              <span id="btn-mobile-filters-text">Filtres</span>
+            </button>
+            <button onclick="clearSearchInput(); resetAllFilters();" class="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold rounded-xl flex items-center justify-center space-x-1 transition" title="Réinitialiser tous les filtres">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Row 2: Unified Executive Dropdowns (Collapsible on mobile) -->
+        <div id="filters-dropdowns-container" class="hidden sm:grid sm:grid-cols-3 lg:grid-cols-5 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+          
+          <!-- Dropdown 1: Catégorie / Thématique -->
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" id="lbl-filter-cat">Catégorie</label>
+            <select id="select-quick-filter" onchange="onQuickFilterSelect(this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-500 cursor-pointer">
+              <option value="CYBER" selected>🛡️ Cybersécurité & SSI (IA)</option>
+              <option value="TRACKED">⭐ Mes AO Suivis & Alertes</option>
+              <option value="PRESS">📰 Journaux Légaux (Atlantic Re, Laprophan)</option>
+              <option value="PRIORITY">🌟 Acheteurs Prioritaires</option>
+              <option value="ALL">📋 Toutes les consultations (Portail brut)</option>
+              <option value="URGENT">🚨 Échéance Urgente (&lt; 15j)</option>
+              <option value="BIG_BUDGET">💎 Gros Budgets (&gt; 1MDH)</option>
+              <option value="DOWNLOADED">📥 DCE Téléchargés / Alertes</option>
+            </select>
+          </div>
+
+          <!-- Dropdown 2: Acheteur Public -->
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" id="lbl-filter-buyer">Acheteur Public</label>
+            <select id="filter-buyer-select" onchange="onBuyerDropdownChange(this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-500 cursor-pointer">
+              <option value="">Tous les acheteurs</option>
+              <option value="PRIORITY_WATCHLIST">⭐ Acheteurs Prioritaires DPA</option>
+              <option value="Atlantic Re">🏛️ Atlantic Re (SCR / CDG)</option>
+              <option value="Laprophan">🏢 Laprophan Pharma</option>
+              <option value="Al Barid Bank">📮 Al Barid Bank</option>
+              <option value="DELEGATION GENERALE">🏛️ DGAPR (Administration Pénitentiaire)</option>
+              <option value="CNSS">🏥 CNSS</option>
+              <option value="DGSN">👮 DGSN</option>
+              <option value="ANRT">📡 ANRT</option>
+              <option value="OFPPT">🎓 OFPPT</option>
+            </select>
+          </div>
+
+          <!-- Dropdown 3: Source / Journal -->
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" id="lbl-filter-src">Source / Média</label>
+            <select id="filter-source" onchange="loadTenders()" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-500 cursor-pointer">
+              <option value="">Toutes les sources</option>
+              <option value="PMMP">Portail National (PMMP / TGR)</option>
+              <option value="Presse / Journal">📰 Presse & Journaux (Le Matin, L'Économiste)</option>
+              <option value="Atlantic Re">🏛️ Atlantic Re (Portail CDG)</option>
+              <option value="Laprophan">🏢 Laprophan (Portail AMMC)</option>
+              <option value="Al Barid Bank">Al Barid Bank (ESOP)</option>
+            </select>
+          </div>
+
+          <!-- Dropdown 4: Échéance / Délais -->
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" id="lbl-filter-dead">Échéance</label>
+            <select id="filter-deadline-select" onchange="onDeadlineDropdownChange(this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-500 cursor-pointer">
+              <option value="ALL">Toutes les échéances</option>
+              <option value="URGENT_7">🚨 Très urgent (< 7 jours)</option>
+              <option value="URGENT_15">⏳ Échéance < 15 jours</option>
+              <option value="URGENT_30">📅 Échéance < 30 jours</option>
+            </select>
+          </div>
+
+          <!-- Dropdown 5: Tri & Ordre -->
+          <div class="col-span-2 sm:col-span-1">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" id="lbl-sort-order">Tri</label>
+            <select id="filter-sort" onchange="onSortDropdownChange()" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-500 cursor-pointer">
+              <option value="publication_desc" selected>📅 Publication (Plus récent)</option>
+              <option value="publication_asc">📅 Publication (Plus ancien)</option>
+              <option value="deadline_asc">⏳ Date Limite (Urgent en 1er)</option>
+              <option value="budget_desc">💰 Budget (Décroissant)</option>
+              <option value="relevance_desc">🎯 Pertinence IA %</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Row 3: Compact Status, Toggles & View Mode Switcher -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
+          
+          <!-- Left: Filter status badge & Active count -->
+          <div class="flex items-center space-x-2">
+            <span id="active-filter-indicator" class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold border border-slate-200 dark:border-slate-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" id="active-filter-dot"></span>
+              <span id="active-filter-name">Toutes les offres</span>
+              <span id="tracked-count-badge" class="px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 font-black text-[9px]">0</span>
+            </span>
+            <span class="text-xs font-bold text-slate-700 dark:text-slate-300" id="results-count-label">54 consultation(s)</span>
+          </div>
+
+          <!-- Right: Toggles and View Mode (Table vs Cards) -->
+          <div class="flex items-center space-x-2.5">
+            <!-- Hide Expired Toggle -->
+            <label class="inline-flex items-center space-x-1.5 cursor-pointer bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 transition font-semibold text-slate-700 dark:text-slate-300" title="Exclure les appels d'offres dont la date limite est expirée">
+              <input type="checkbox" id="toggle-hide-expired" checked onchange="loadTenders()" class="rounded text-amber-500 focus:ring-amber-500">
+              <span id="lbl-hide-expired">Masquer expirés</span>
+            </label>
+
+            <!-- Group by Day Toggle -->
+            <label class="inline-flex items-center space-x-1.5 cursor-pointer bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 transition font-semibold text-slate-700 dark:text-slate-300">
+              <input type="checkbox" id="toggle-group-by-day" checked onchange="renderTendersList(allTendersCache)" class="rounded text-emerald-600 focus:ring-emerald-500">
+              <span id="group-toggle-label">Grouper par Jour</span>
+            </label>
+
+            <!-- View Switcher (Table vs Cards - Hidden on mobile where native touch cards are default) -->
+            <div class="hidden md:flex items-center p-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200/80 dark:border-slate-700">
+              <button type="button" id="btn-view-table" onclick="setViewMode('table')" class="p-1.5 rounded-md text-xs font-bold transition flex items-center space-x-1 bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs" title="Vue Tableau ajusté sans défilement">
+                <i data-lucide="table" class="w-3.5 h-3.5 text-orange-500"></i>
+                <span class="hidden sm:inline" id="btn-view-table-text">Tableau</span>
+              </button>
+              <button type="button" id="btn-view-cards" onclick="setViewMode('cards')" class="p-1.5 rounded-md text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition flex items-center space-x-1" title="Vue Cartes">
+                <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+                <span class="hidden sm:inline" id="btn-view-cards-text">Cartes</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Tenders Container (Modern Cards) -->
+      <div id="tenders-container" class="space-y-3.5">
+        <!-- Dynamically rendered -->
+        <div class="bg-white p-12 text-center text-slate-400 border border-slate-200 rounded-2xl">
+          <i data-lucide="loader" class="w-8 h-8 mx-auto animate-spin text-emerald-600 mb-2"></i>
+          <p class="font-medium text-sm">Chargement des avis et consultations officielles...</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== VIEW 2: PIPELINE KANBAN ==================== -->
+    <div id="view-pipeline" class="hidden space-y-4">
+      <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+            <i data-lucide="kanban" class="w-4 h-4 text-emerald-600"></i>
+            <span>Pipeline Commercial & Suivi des Décisions de Soumission</span>
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">Suivez le statut de chaque appel d'offres : Qualification, préparation de l'offre technique, dépôt et résultats.</p>
+        </div>
+        <button onclick="exportTendersCSV()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 flex items-center space-x-1">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span>Exporter le Pipeline</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-3 min-h-[600px]">
+        <!-- Watching -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-3 flex flex-col shadow-sm">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+            <span class="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+              <span>À Surveiller</span>
+            </span>
+            <span class="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full font-mono font-bold" id="count-watching">0</span>
+          </div>
+          <div id="kanban-watching" class="space-y-2 flex-1 overflow-y-auto"></div>
+        </div>
+
+        <!-- Go -->
+        <div class="bg-white border border-emerald-200 rounded-2xl p-3 flex flex-col shadow-sm">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-emerald-100">
+            <span class="text-xs font-bold text-emerald-700 flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <span>GO (En Réponse)</span>
+            </span>
+            <span class="text-xs bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full font-mono font-bold" id="count-go">0</span>
+          </div>
+          <div id="kanban-go" class="space-y-2 flex-1 overflow-y-auto"></div>
+        </div>
+
+        <!-- No-Go -->
+        <div class="bg-white border border-rose-200 rounded-2xl p-3 flex flex-col shadow-sm">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-rose-100">
+            <span class="text-xs font-bold text-rose-700 flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+              <span>NO-GO</span>
+            </span>
+            <span class="text-xs bg-rose-50 text-rose-700 px-1.5 py-0.5 rounded-full font-mono font-bold" id="count-no_go">0</span>
+          </div>
+          <div id="kanban-no_go" class="space-y-2 flex-1 overflow-y-auto"></div>
+        </div>
+
+        <!-- Submitted -->
+        <div class="bg-white border border-blue-200 rounded-2xl p-3 flex flex-col shadow-sm">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-blue-100">
+            <span class="text-xs font-bold text-blue-800 flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+              <span>Offre Déposée</span>
+            </span>
+            <span class="text-xs bg-blue-50 text-blue-800 px-1.5 py-0.5 rounded-full font-mono font-bold" id="count-submitted">0</span>
+          </div>
+          <div id="kanban-submitted" class="space-y-2 flex-1 overflow-y-auto"></div>
+        </div>
+
+        <!-- Won -->
+        <div class="bg-white border border-amber-200 rounded-2xl p-3 flex flex-col shadow-sm">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-amber-100">
+            <span class="text-xs font-bold text-amber-700 flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+              <span>Attribué (Gagné)</span>
+            </span>
+            <span class="text-xs bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded-full font-mono font-bold" id="count-won">0</span>
+          </div>
+          <div id="kanban-won" class="space-y-2 flex-1 overflow-y-auto"></div>
+        </div>
+
+        <!-- Lost -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-3 flex flex-col shadow-sm">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+            <span class="text-xs font-bold text-slate-500 flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+              <span>Non Retenu</span>
+            </span>
+            <span class="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-mono font-bold" id="count-lost">0</span>
+          </div>
+          <div id="kanban-lost" class="space-y-2 flex-1 overflow-y-auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== VIEW 3: ADMIN & CONNECTORS ==================== -->
+    <div id="view-admin" class="hidden space-y-5">
+      <!-- Realtime Connectors Status -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm transition-colors">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+              <i data-lucide="cpu" class="w-4 h-4 text-emerald-600"></i>
+              <span>Connecteurs de Collecte en Temps Réel (PMMP, Al Barid Bank, Presse & Portails)</span>
+            </h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Surveillance continue, requêtes API certifiées et détection des avis de marchés</p>
+          </div>
+          <button onclick="triggerAllScrapers()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i>
+            <span>Synchroniser Tous les Connecteurs</span>
+          </button>
+        </div>
+        <div id="admin-scrapers-container" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      </div>
+
+      <!-- Google AI Studio Configuration -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3 transition-colors">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+              <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
+              <span>Google AI Studio — Intelligence Artificielle (Gemini 2.5)</span>
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Analyse automatique des DCE, conformité Loi 05-20, recommandations GO/NO-GO</p>
+          </div>
+          <span id="gemini-status-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Chargement...</span>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2.5">
+          <input type="text" id="gemini-api-key-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Entrez votre clé API Google AI Studio (AIzaSy...)" class="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500">
+          <button onclick="saveGeminiKey()" class="px-4 py-2 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 shadow-sm transition shrink-0">
+            <i data-lucide="key" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>Enregistrer la Clé</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Configuration Email / SMTP & Alertes -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 transition-colors">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+              <i data-lucide="mail" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+              <span>Configuration Serveur Mail (SMTP) & Alertes DPA</span>
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Envoi automatique des alertes marchés, fiches de synthèse DCE et digests quotidiens</p>
+          </div>
+          <button onclick="testSmtpConnection()" type="button" class="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold flex items-center space-x-1.5 border border-slate-200 dark:border-slate-700 transition">
+            <i data-lucide="send" class="w-3.5 h-3.5 text-amber-500"></i>
+            <span>Tester la Connexion SMTP</span>
+          </button>
+        </div>
+
+        <form id="form-alerts-config" onsubmit="saveAlertsConfig(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Serveur SMTP (Host)</label>
+              <input type="text" id="cfg-smtp-host" placeholder="smtp.gmail.com / mail.dpg-cyber.com" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Port SMTP</label>
+              <input type="number" id="cfg-smtp-port" placeholder="587" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Utilisateur SMTP / Email</label>
+              <input type="email" id="cfg-smtp-user" placeholder="alertes@dpg-cyber.com" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Mot de passe SMTP / App Password</label>
+              <input type="text" id="cfg-smtp-pass" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Laisser vide si inchangé" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Destinataires des Alertes (séparés par virgule)</label>
+              <input type="text" id="cfg-email-recipients" placeholder="john.doe@dpg-cyber.com, veille@dpg-cyber.com" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">Webhook URL Teams / Slack (Optionnel)</label>
+              <input type="url" id="cfg-webhook-url" placeholder="https://hooks.slack.com/services/..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500">
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2">
+            <label class="inline-flex items-center space-x-2 cursor-pointer select-none">
+              <input type="checkbox" id="cfg-email-enabled" checked class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500">
+              <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Activer les alertes email automatiques pour les nouveaux AO</span>
+            </label>
+            <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition">
+              <i data-lucide="check" class="w-3.5 h-3.5"></i>
+              <span>Enregistrer la Configuration SMTP</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Connecteurs Personnalisés / Portails Externes -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3 transition-colors">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+              <i data-lucide="globe-2" class="w-4 h-4 text-orange-500"></i>
+              <span>Connecteurs Génériques Personnalisés (Sites Clients & Régies)</span>
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Ajout de portails d'achats spécifiques avec extraction HTML sécurisée</p>
+          </div>
+          <button onclick="openAddGenericModal()" type="button" class="px-3.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-xs transition">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Nouveau Connecteur</span>
+          </button>
+        </div>
+        <div id="admin-generic-container" class="space-y-2">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Priority Buyer Watchlist Manager -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-2 transition-colors">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white">Acheteurs Prioritaires Actifs</h3>
+          <button onclick="openAddWatchlistModal()" class="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-bold flex items-center space-x-1 border border-slate-200 dark:border-slate-700 transition">
+            <i data-lucide="plus" class="w-3 h-3 text-amber-500"></i>
+            <span>Ajouter Acheteur</span>
+          </button>
+        </div>
+        <div id="admin-watchlist-container" class="flex flex-wrap gap-2 pt-1"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==================== TENDER DETAIL & AI INSPECTOR MODAL ==================== -->
+  <div id="tender-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl max-w-4xl w-[96vw] sm:w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[94vh] sm:max-h-[90vh] transition-all">
+      
+      <!-- Modal Header -->
+      <div class="p-3.5 sm:p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/80 flex items-start justify-between gap-3 shrink-0">
+        <div class="space-y-1.5 min-w-0 flex-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="modal-proc" class="px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">AOO</span>
+            <span class="text-xs font-bold text-slate-400">Réf :</span>
+            <div class="inline-flex items-center space-x-1 bg-white dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700 shadow-2xs">
+              <code id="modal-ref" class="text-xs font-mono font-bold text-slate-900 dark:text-slate-100"></code>
+              <button onclick="copyModalRef()" class="p-0.5 text-slate-400 hover:text-slate-700 dark:hover:text-white" title="Copier la référence">
+                <i data-lucide="copy" class="w-3 h-3"></i>
+              </button>
+            </div>
+            <span id="modal-priority-badge" class="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-extrabold uppercase bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hidden">PRIORITAIRE</span>
+          </div>
+          <h3 id="modal-title" class="text-sm sm:text-base md:text-lg font-bold text-slate-900 dark:text-white leading-snug break-words"></h3>
+          <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-600 dark:text-slate-400" id="modal-buyer">
+            <span class="font-bold text-slate-800 dark:text-slate-200"></span>
+            <span class="text-slate-300 dark:text-slate-700">·</span>
+            <span id="modal-source-name" class="text-emerald-700 dark:text-emerald-400 font-bold">PMMP</span>
+          </div>
+        </div>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-200/80 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 transition" title="Fermer (Échap)">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Executive Quick Stats Bar (4 High-impact metrics) -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 p-2.5 sm:px-5 bg-slate-100/70 dark:bg-slate-950/50 border-b border-slate-200/80 dark:border-slate-800 text-xs shrink-0">
+        <!-- Budget -->
+        <div class="bg-white dark:bg-slate-800/90 p-2 sm:p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between">
+          <span class="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold tracking-wider">Budget Estimé TTC</span>
+          <span id="modal-budget" class="text-slate-900 dark:text-slate-100 font-extrabold text-xs sm:text-sm mt-0.5 block break-words leading-tight"></span>
+        </div>
+        <!-- Deadline -->
+        <div class="bg-white dark:bg-slate-800/90 p-2 sm:p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between">
+          <span class="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold tracking-wider">Date Limite Réponse</span>
+          <div class="flex items-center space-x-1 mt-0.5">
+            <span id="modal-deadline" class="text-slate-900 dark:text-slate-100 font-bold text-xs break-words leading-tight"></span>
+          </div>
+          <span id="modal-countdown" class="text-[10px] text-amber-600 dark:text-amber-400 font-bold block mt-0.5"></span>
+        </div>
+        <!-- Caution -->
+        <div class="bg-white dark:bg-slate-800/90 p-2 sm:p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between">
+          <span class="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold tracking-wider">Caution Provisoire</span>
+          <span id="modal-caution" class="text-slate-900 dark:text-slate-100 font-bold text-xs mt-0.5 block break-words leading-tight"></span>
+        </div>
+        <!-- IA Cyber Score -->
+        <div class="bg-white dark:bg-slate-800/90 p-2 sm:p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between">
+          <span class="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold tracking-wider">Pertinence Cyber</span>
+          <span id="modal-score-badge" class="inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-extrabold font-mono"></span>
+        </div>
+      </div>
+
+      <!-- Segmented Navigation Tabs (Horizontally scrollable on mobile) -->
+      <div class="flex overflow-x-auto no-scrollbar border-b border-slate-200 dark:border-slate-800 px-3 sm:px-5 bg-white dark:bg-slate-900 text-xs font-bold shrink-0">
+        <button onclick="switchModalTab('summary')" id="tab-btn-modal-summary" class="py-2.5 px-3 border-b-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 flex items-center space-x-1.5 transition">
+          <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+          <span>Synthèse & Périmètre</span>
+        </button>
+        <button onclick="switchModalTab('dossier')" id="tab-btn-modal-dossier" class="py-2.5 px-3 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center space-x-1.5 transition">
+          <i data-lucide="folder-check" class="w-3.5 h-3.5"></i>
+          <span>Dossier Réglementaire (DPA)</span>
+        </button>
+        <button onclick="switchModalTab('pipeline')" id="tab-btn-modal-pipeline" class="py-2.5 px-3 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center space-x-1.5 transition">
+          <i data-lucide="kanban" class="w-3.5 h-3.5"></i>
+          <span>Pipeline & Historique</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Tabbed Content) -->
+      <div class="p-4 sm:p-5 overflow-y-auto flex-1 text-xs space-y-4">
+        
+        <!-- ==================== TAB 1 : SYNTHÈSE & PÉRIMÈTRE ==================== -->
+        <div id="modal-view-summary" class="space-y-4">
+          
+          <!-- Official Publication Source & Direct Verification Banner -->
+          <div id="modal-source-banner" class="bg-gradient-to-r from-emerald-50/90 to-slate-50 dark:from-slate-800 dark:to-slate-900/90 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+            <div class="space-y-1 min-w-0 flex-1">
+              <div class="flex items-center space-x-2">
+                <span id="modal-source-banner-icon" class="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 shrink-0">
+                  <i data-lucide="globe" class="w-4 h-4"></i>
+                </span>
+                <div class="min-w-0">
+                  <span class="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">Source Officielle & Annonce</span>
+                  <h4 id="modal-source-banner-title" class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white leading-tight truncate"></h4>
+                </div>
+              </div>
+              <p id="modal-source-banner-desc" class="text-[11px] text-slate-600 dark:text-slate-300 pl-7 leading-snug"></p>
+              <div class="pl-7 flex items-center space-x-2 text-[11px] text-slate-500 dark:text-slate-400">
+                <span class="font-semibold text-slate-700 dark:text-slate-300 shrink-0">Lien direct :</span>
+                <a id="modal-source-banner-url" href="#" target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:underline font-mono font-bold truncate max-w-[220px] sm:max-w-md"></a>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto pt-2 sm:pt-0">
+              <button id="modal-btn-download-dce" onclick="downloadActiveTenderDCE()" class="flex-1 sm:flex-initial px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 shadow-xs transition">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                <span id="modal-dce-btn-label">Télécharger DCE (1-Clic)</span>
+              </button>
+              <a id="modal-dce-portal-link" href="#" target="_blank" class="flex-1 sm:flex-initial px-3.5 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 transition shadow-2xs">
+                <i data-lucide="external-link" class="w-3.5 h-3.5 text-emerald-500"></i>
+                <span id="modal-source-portal-btn-label">Consulter l'Avis ↗</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- AI Cyber Relevance & Summary Box -->
+          <div id="modal-summary-box" class="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-900 dark:text-white flex items-center space-x-1.5 text-xs">
+                <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
+                <span>Synthèse IA & Analyse Cybersécurité</span>
+              </span>
+            </div>
+            <p id="modal-summary-text" class="text-slate-700 dark:text-slate-300 text-xs leading-relaxed"></p>
+            <div id="modal-keywords-container" class="flex flex-wrap gap-1.5 pt-1"></div>
+          </div>
+
+          <!-- Secondary Specifications Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div class="bg-slate-50 dark:bg-slate-950/70 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+              <span class="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold">Lieu d'Ouverture des Plis</span>
+              <span id="modal-opening-place" class="text-slate-800 dark:text-slate-200 font-semibold text-xs mt-0.5 block break-words leading-snug"></span>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-950/70 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+              <span class="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold">Qualifications / Agréments</span>
+              <span id="modal-qualifications" class="text-slate-800 dark:text-slate-200 font-semibold text-xs mt-0.5 block break-words leading-snug"></span>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-950/70 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+              <span class="text-slate-400 dark:text-slate-500 block text-[9px] uppercase font-bold">Contact Officiel Achats</span>
+              <span id="modal-contact" class="text-slate-800 dark:text-slate-200 font-semibold text-xs mt-0.5 block break-words leading-snug"></span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==================== TAB 2 : DOSSIER RÉGLEMENTAIRE ==================== -->
+        <div id="modal-view-dossier" class="hidden space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="shield-check" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0"></i>
+              <span class="text-xs font-bold text-amber-900 dark:text-amber-200">Exigences Réglementaires du Décret des Marchés Publics n° 2-22-431</span>
+            </div>
+            <button onclick="openSubmissionFolderModal('dashboard')" class="text-[11px] font-bold text-slate-950 bg-amber-400 hover:bg-amber-500 px-3 py-1.5 rounded-lg flex items-center space-x-1.5 shadow-2xs transition shrink-0">
+              <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+              <span>Ouvrir Matrice Hudu DPA ↗</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <!-- 1. Administratif -->
+            <div onclick="openSubmissionFolderModal('admin')" class="bg-slate-50 dark:bg-slate-950/70 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 border-t-4 border-t-amber-500 space-y-2 cursor-pointer hover:border-amber-400 transition group">
+              <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-1.5">
+                <span class="font-bold text-slate-900 dark:text-white group-hover:text-amber-500 transition">1. Dossier Administratif</span>
+                <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950 px-1.5 py-0.2 rounded">Détails ↗</span>
+              </div>
+              <ul class="space-y-1 text-slate-600 dark:text-slate-400 text-[11px] list-disc list-inside">
+                <li>Déclaration sur l'honneur signée</li>
+                <li>Cautionnement provisoire conforme</li>
+                <li>Extrait Registre de Commerce & ICE</li>
+                <li>Attestation Fiscale & CNSS récentes</li>
+              </ul>
+            </div>
+
+            <!-- 2. Technique -->
+            <div onclick="openSubmissionFolderModal('tech')" class="bg-slate-50 dark:bg-slate-950/70 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 border-t-4 border-t-emerald-500 space-y-2 cursor-pointer hover:border-emerald-400 transition group">
+              <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-1.5">
+                <span class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-500 transition">2. Offre Technique & CVs</span>
+                <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950 px-1.5 py-0.2 rounded">Grille Profils ↗</span>
+              </div>
+              <ul class="space-y-1 text-slate-600 dark:text-slate-400 text-[11px] list-disc list-inside">
+                <li>Méthodologie d'intervention DPA</li>
+                <li class="font-semibold text-emerald-700 dark:text-emerald-400">CVs & Profils d'experts certifiés</li>
+                <li>Attestations de bonne exécution</li>
+                <li>Certifications & Agréments</li>
+              </ul>
+            </div>
+
+            <!-- 3. Financier -->
+            <div onclick="openSubmissionFolderModal('fin')" class="bg-slate-50 dark:bg-slate-950/70 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 border-t-4 border-t-blue-500 space-y-2 cursor-pointer hover:border-blue-400 transition group">
+              <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-1.5">
+                <span class="font-bold text-slate-900 dark:text-white group-hover:text-blue-500 transition">3. Offre Financière</span>
+                <span class="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-950 px-1.5 py-0.2 rounded">Chiffrage ↗</span>
+              </div>
+              <ul class="space-y-1 text-slate-600 dark:text-slate-400 text-[11px] list-disc list-inside">
+                <li>Acte d'engagement légalisé</li>
+                <li>Bordereau des Prix Unitaires (BPE)</li>
+                <li>Sous-détail estimatif des coûts</li>
+                <li>Montant HT et TVA marocaine 20%</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 3 : PIPELINE & HISTORIQUE ==================== -->
+        <div id="modal-view-pipeline" class="hidden space-y-4">
+          
+          <!-- Pipeline Decision Form -->
+          <div class="bg-slate-50 dark:bg-slate-950/70 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+            <span class="font-bold text-slate-900 dark:text-white block text-xs">Suivi Pipeline Commercial</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] text-slate-500 dark:text-slate-400 mb-1 font-medium">Statut Commercial</label>
+                <select id="modal-pipeline-status" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                  <option value="watching">À Surveiller (Watching)</option>
+                  <option value="go">GO (En préparation de réponse)</option>
+                  <option value="no_go">NO-GO (Abandonné)</option>
+                  <option value="submitted">Déposé (Offre soumise)</option>
+                  <option value="won">Gagné (Marché attribué)</option>
+                  <option value="lost">Perdu (Non retenu)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-500 dark:text-slate-400 mb-1 font-medium">Notes d'équipe confidentielles</label>
+                <input type="text" id="modal-pipeline-notes" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2 text-xs text-slate-800 dark:text-slate-200" placeholder="ex: Partenaire validé, caution bancaire déposée...">
+              </div>
+            </div>
+            <div class="flex justify-end pt-1">
+              <button onclick="saveModalPipeline()" class="px-4 py-1.5 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-xs">
+                Enregistrer le Statut
+              </button>
+            </div>
+          </div>
+
+          <!-- History & Corrigenda Timeline -->
+          <div class="bg-slate-50 dark:bg-slate-950/70 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+            <h4 class="font-bold text-slate-900 dark:text-white flex items-center space-x-1.5 text-xs">
+              <i data-lucide="history" class="w-4 h-4 text-slate-400"></i>
+              <span>Historique des Modifications & Rectificatifs</span>
+            </h4>
+            <div id="modal-history-container" class="space-y-1.5 border-l-2 border-emerald-500 pl-3 pt-1"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Modal Footer (Sticky Responsive) -->
+      <div class="p-3 sm:p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/95 dark:bg-slate-950/95 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0">
+        <div class="flex items-center justify-between sm:justify-start space-x-2">
+          <a id="modal-source-link" href="#" target="_blank" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-bold flex items-center space-x-1 truncate max-w-[200px]">
+            <span id="modal-source-footer-text">Source Officielle</span>
+            <i data-lucide="external-link" class="w-3.5 h-3.5 shrink-0"></i>
+          </a>
+          <span class="text-slate-300 dark:text-slate-700">|</span>
+          <button onclick="triggerModalOfficialAlert()" class="px-3 py-1.5 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition">
+            <i data-lucide="mail" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400"></i>
+            <span id="modal-email-btn-text">Alerte Email</span>
+          </button>
+        </div>
+        <div class="flex items-center space-x-2 w-full sm:w-auto">
+          <button id="modal-btn-track-toggle" onclick="toggleModalTrackTender()" class="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-xs flex items-center justify-center space-x-1.5 transition">
+            <i data-lucide="star" class="w-3.5 h-3.5"></i>
+            <span id="modal-track-btn-text">Suivre cet AO</span>
+          </button>
+          <button onclick="closeModal()" class="flex-1 sm:flex-initial px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-bold transition text-center">
+            Fermer
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== DPA SUBMISSION FOLDER & PROFILES POPUP MODAL (HUDU STYLE) ==================== -->
+  <div id="submission-folder-modal" class="fixed inset-0 z-[60] bg-slate-950/70 backdrop-blur-md hidden flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-[#f8fafc] rounded-2xl max-w-7xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[94vh]">
+      
+      <!-- Hudu Top Navigation Bar -->
+      <div class="bg-white border-b border-slate-200 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center space-x-6 min-w-0">
+          <div class="flex items-center space-x-2 shrink-0">
+            <img src="/static/dpa_logo.png" class="h-7 w-auto object-contain" alt="DPG-cyber">
+          </div>
+          <div class="hidden md:flex items-center space-x-5 text-xs font-semibold text-slate-700">
+            <span class="hover:text-amber-600 cursor-pointer">Companies</span>
+            <span class="hover:text-amber-600 cursor-pointer">Global</span>
+            <span class="hover:text-amber-600 cursor-pointer">Central KB</span>
+            <span class="hover:text-amber-600 cursor-pointer">My Vault</span>
+            <span class="text-amber-600 font-bold border-b-2 border-amber-500 pb-0.5">Dossier RFP</span>
+            <span class="hover:text-amber-600 cursor-pointer">Admin</span>
+          </div>
+        </div>
+
+        <div class="flex-1 max-w-xs mx-4 hidden sm:block">
+          <div class="relative">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5"></i>
+            <input type="text" placeholder="Search all" class="w-full bg-slate-100 border border-slate-200 rounded-lg pl-8 pr-7 py-1 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-500">
+            <span class="absolute right-2.5 top-1.5 text-[10px] font-mono font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">/</span>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2 shrink-0 text-slate-600">
+          <button class="p-1.5 hover:bg-slate-100 rounded-lg transition" title="Historique"><i data-lucide="clock" class="w-4 h-4"></i></button>
+          <button class="p-1.5 hover:bg-slate-100 rounded-lg transition" title="Favoris"><i data-lucide="heart" class="w-4 h-4"></i></button>
+          <button class="p-1.5 hover:bg-slate-100 rounded-lg transition" title="Calendrier"><i data-lucide="calendar" class="w-4 h-4"></i></button>
+          <button class="p-1.5 hover:bg-slate-100 rounded-lg transition" title="Partager"><i data-lucide="send" class="w-4 h-4"></i></button>
+          <button class="p-1.5 hover:bg-slate-100 rounded-lg transition text-amber-500" title="Assistant IA"><i data-lucide="sparkles" class="w-4 h-4"></i></button>
+          <div class="w-7 h-7 rounded-full bg-emerald-500 text-white font-bold text-[11px] flex items-center justify-center">DP</div>
+          <button onclick="closeSubmissionFolderModal()" class="w-7 h-7 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center transition ml-2">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Hudu Sub-Header Greeting Bar -->
+      <div class="bg-white/90 border-b border-slate-200 px-6 py-3 flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center space-x-3 min-w-0">
+          <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-700 border border-emerald-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+            <i data-lucide="user" class="w-4 h-4"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center space-x-2">
+              <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white" id="hudu-greeting-title">Dossier de Soumission DPA</h2>
+              <span class="px-2 py-0.5 rounded font-mono font-bold text-xs bg-amber-50 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800" id="subfolder-modal-ref"></span>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700" id="subfolder-buyer-badge"></span>
+            </div>
+            <p class="text-xs text-slate-500 truncate max-w-xl" id="subfolder-modal-title"></p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2 shrink-0">
+          <!-- View Switcher (Dashboard vs Details) -->
+          <div class="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-semibold">
+            <button type="button" id="btn-subfolder-view-dashboard" onclick="switchSubmissionView('dashboard')" class="px-3 py-1.5 rounded-lg font-bold bg-white text-slate-900 shadow-2xs transition flex items-center space-x-1.5">
+              <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-amber-500"></i>
+              <span>Dashboard Hudu (8 Widgets)</span>
+            </button>
+            <button type="button" id="btn-subfolder-view-details" onclick="switchSubmissionView('details')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center space-x-1.5">
+              <i data-lucide="table" class="w-3.5 h-3.5 text-slate-500"></i>
+              <span>Matrice Complète & Profils RH</span>
+            </button>
+          </div>
+
+          <button onclick="window.print()" class="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl flex items-center space-x-1 transition shadow-2xs">
+            <i data-lucide="printer" class="w-3.5 h-3.5 text-slate-600"></i>
+            <span class="hidden sm:inline">Imprimer / PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ==================== HUDU 8-WIDGET DASHBOARD VIEW ==================== -->
+      <div id="subfolder-hudu-dashboard-view" class="p-5 sm:p-6 overflow-y-auto flex-1 bg-[#f8fafc] space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          
+          <!-- Card 1: My Favorites -->
+          <div class="bg-white rounded-xl shadow-xs border border-slate-200 border-t-4 border-t-amber-500 p-4 flex flex-col justify-between h-[270px]">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h4 class="font-bold text-slate-900 text-sm">My Favorites</h4>
+                <i data-lucide="heart" class="w-4 h-4 text-slate-300"></i>
+              </div>
+              <div class="pt-3 space-y-2.5">
+                <div class="flex items-center space-x-2 text-xs">
+                  <span class="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span class="font-bold text-slate-800 truncate">Déclaration sur l'honneur signée</span>
+                </div>
+                <div class="flex items-center space-x-2 text-xs">
+                  <span class="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span class="font-bold text-slate-800 truncate">Caution provisoire : <span id="hudu-fav-caution" class="text-amber-700 font-mono"></span></span>
+                </div>
+                <div class="flex items-center space-x-2 text-xs">
+                  <span class="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span class="font-bold text-slate-800 truncate">Extrait RC & ICE DataProtech</span>
+                </div>
+                <div class="flex items-center space-x-2 text-xs">
+                  <span class="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                  <span class="font-bold text-slate-800 truncate">Attestations Fiscales & CNSS DPA</span>
+                </div>
+              </div>
+            </div>
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-[11px] text-slate-400">7 pièces requises</span>
+              <a href="javascript:void(0)" onclick="openHuduDetailTab('admin')" class="font-semibold text-blue-600 hover:text-blue-800">View all</a>
+            </div>
+          </div>
+
+          <!-- Card 2: My Recents (Exact match to screenshot accounts & equipment!) -->
+          <div class="bg-white rounded-xl shadow-xs border border-slate-200 border-t-4 border-t-amber-500 p-4 flex flex-col justify-between h-[270px]">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h4 class="font-bold text-slate-900 text-sm">My Recents</h4>
+                <i data-lucide="clock" class="w-4 h-4 text-slate-300"></i>
+              </div>
+              <div class="pt-2 space-y-2 text-xs overflow-y-auto max-h-[175px]" id="hudu-recents-list">
+                <div class="flex items-center space-x-2.5">
+                  <div class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <i data-lucide="key" class="w-3 h-3"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-slate-900 truncate text-[11px]">Périmètre Pare-feu Datacenter (FortiGate)</p>
+                    <p class="text-[10px] text-slate-500 truncate" id="hudu-recents-buyer">Acheteur Public</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2.5">
+                  <div class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <i data-lucide="shield" class="w-3 h-3"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-slate-900 truncate text-[11px]" id="hudu-recents-buyer2">Périmètre Acheteur</p>
+                    <p class="text-[10px] text-slate-500">Infrastructure Sécurité</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2.5">
+                  <div class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <i data-lucide="lock" class="w-3 h-3"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-slate-900 truncate text-[11px]">DataProtech (DPA)</p>
+                    <p class="text-[10px] text-slate-500">Tenant & Coffre-fort</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2.5">
+                  <div class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <i data-lucide="key" class="w-3 h-3"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-slate-900 truncate text-[11px]">Plateforme EDR/XDR Datacenter</p>
+                    <p class="text-[10px] text-slate-500">DPA Cybersécurité</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2.5">
+                  <div class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <i data-lucide="key" class="w-3 h-3"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-slate-900 truncate text-[11px]">Supervision SOC & Cloud Datacenter</p>
+                    <p class="text-[10px] text-slate-500">DPA Cybersécurité</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-[11px] text-slate-400">Équipements & Comptes</span>
+              <a href="javascript:void(0)" onclick="openHuduDetailTab('tech')" class="font-semibold text-blue-600 hover:text-blue-800">View all</a>
+            </div>
+          </div>
+
+          <!-- Card 3: My Tasks -->
+          <div class="bg-white rounded-xl shadow-xs border border-slate-200 border-t-4 border-t-amber-500 p-4 flex flex-col justify-between h-[270px]">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h4 class="font-bold text-slate-900 text-sm">My Tasks</h4>
+                <i data-lucide="check-square" class="w-4 h-4 text-slate-300"></i>
+              </div>
+              <div class="pt-3 space-y-2 text-xs">
+                <label class="flex items-center space-x-2">
+                  <input type="checkbox" checked disabled class="w-3.5 h-3.5 text-emerald-600 rounded">
+                  <span class="text-slate-700 font-medium line-through">Téléchargement DCE officiel</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                  <input type="checkbox" checked disabled class="w-3.5 h-3.5 text-emerald-600 rounded">
+                  <span class="text-slate-700 font-medium line-through">Validation caution bancaire</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                  <input type="checkbox" class="w-3.5 h-3.5 text-amber-600 rounded">
+                  <span class="text-slate-800 font-medium">Affectation des CVs experts DPA</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                  <input type="checkbox" class="w-3.5 h-3.5 text-amber-600 rounded">
+                  <span class="text-slate-800 font-medium">Signature Acte d'engagement & BPE</span>
+                </label>
+                <p class="text-[11px] text-emerald-700 font-semibold pt-1 text-center">You're all caught up - great job!</p>
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-[11px] text-slate-400">Checklist DPA</span>
+              <a href="javascript:void(0)" onclick="openHuduDetailTab('admin')" class="font-semibold text-blue-600 hover:text-blue-800">View all</a>
+            </div>
+          </div>
+
+          <!-- Card 4: Expiring Soon -->
+          <div class="bg-white rounded-xl shadow-xs border border-slate-200 border-t-4 border-t-amber-500 p-4 flex flex-col justify-between h-[270px]">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h4 class="font-bold text-slate-900 text-sm">Expiring Soon</h4>
+                <i data-lucide="calendar" class="w-4 h-4 text-slate-300"></i>
+              </div>
+              <div class="pt-3 space-y-3">
+                <div class="flex items-start space-x-2.5">
+                  <div class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5">
+                    <i data-lucide="globe" class="w-3 h-3"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <a id="hudu-expiring-url" href="#" target="_blank" class="font-bold text-xs text-slate-900 hover:text-amber-600 block truncate">marchespublics.gov.ma</a>
+                    <p class="text-[11px] text-slate-500 truncate mt-0.5">
+                      <span id="hudu-expiring-buyer">Acheteur</span> · <span id="hudu-expiring-countdown" class="text-amber-700 font-bold font-mono"></span>
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-start space-x-2.5 pt-1">
+                  <div class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5">
+                    <i data-lucide="help-circle" class="w-3 h-3"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-xs text-slate-900">Demande d'éclaircissements</p>
+                    <p class="text-[11px] text-slate-500">J-7 avant date limite de remise</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-[11px] text-slate-400">Échéance de remise</span>
+              <a href="javascript:void(0)" onclick="openHuduDetailTab('admin')" class="font-semibold text-blue-600 hover:text-blue-800">View all</a>
+            </div>
+          </div>
+
+          <!-- Card 5: Recently Flagged -->
+          <div class="bg-white rounded-xl shadow-xs border border-slate-200 border-t-4 border-t-amber-500 p-4 flex flex-col justify-between h-[270px]">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h4 class="font-bold text-slate-900 text-sm">Recently Flagged</h4>
+                <i data-lucide="flag" class="w-4 h-4 text-slate-300"></i>
+              </div>
+              <div class="pt-3 space-y-2 text-xs">
+                <div class="p-2 rounded-lg bg-amber-50/80 border border-amber-200 text-amber-950 space-y-0.5">
+                  <span class="font-bold text-[11px] flex items-center space-x-1">
+                    <i data-lucide="alert-triangle" class="w-3 h-3 text-amber-600"></i>
+                    <span>Caution Provisoire Obligatoire</span>
+                  </span>
+                  <p class="text-[10px] text-amber-800 font-mono" id="hudu-flag-caution"></p>
+                </div>
+                <div class="p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 space-y-0.5">
+                  <span class="font-bold text-[11px] flex items-center space-x-1">
+                    <i data-lucide="award" class="w-3 h-3 text-slate-600"></i>
+                    <span>Agréments Constructeurs</span>
+                  </span>
+                  <p class="text-[10px] text-slate-500">Partenariats éditeurs certifiés exigés</p>
+                </div>
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-[11px] text-slate-400">Vigilance CPS</span>
+              <a href="javascript:void(0)" onclick="openHuduDetailTab('tech')" class="font-semibold text-blue-600 hover:text-blue-800">View all</a>
+            </div>
+          </div>
+
+          <!-- Card 6: Pwned Passwords / Profils RH Requis (From Excel template!) -->
+          <div class="bg-white rounded-xl shadow-xs border border-slate-200 border-t-4 border-t-amber-500 p-4 flex flex-col justify-between h-[270px]">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h4 class="font-bold text-slate-900 text-sm">Profils RH & CVs Requis</h4>
+                <i data-lucide="users" class="w-4 h-4 text-slate-300"></i>
+              </div>
+              <div class="pt-2 space-y-2 text-xs overflow-y-auto max-h-[175px]" id="hudu-pwned-profiles-list">
+                <!-- Dynamically populated with red skull / user icons -->
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-[11px] text-slate-400" id="hudu-pwned-count-label">4 profils</span>
+              <a href="javascript:void(0)" onclick="openHuduDetailTab('tech')" class="font-semibold text-blue-600 hover:text-blue-800">View all</a>
+            </div>
+          </div>
+
+          <!-- Card 7: Activity Feed -->
+          <div class="bg-white rounded-xl shadow-xs border border-slate-200 border-t-4 border-t-amber-500 p-4 flex flex-col justify-between h-[270px]">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h4 class="font-bold text-slate-900 text-sm">Activity Feed</h4>
+                <i data-lucide="activity" class="w-4 h-4 text-slate-300"></i>
+              </div>
+              <div class="pt-2 space-y-2 text-xs overflow-y-auto max-h-[175px]">
+                <div class="flex items-start space-x-2">
+                  <div class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 text-[10px] font-bold">DP</div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-slate-900 text-[11px] truncate">Dossier de soumission préparé</p>
+                    <p class="text-[10px] text-slate-500">DPG Support · Il y a 2 heures</p>
+                  </div>
+                </div>
+                <div class="flex items-start space-x-2">
+                  <div class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 text-[10px] font-bold">DP</div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-slate-900 text-[11px] truncate">DCE Téléchargé sans compte</p>
+                    <p class="text-[10px] text-slate-500">DPG Support · Aujourd'hui</p>
+                  </div>
+                </div>
+                <div class="flex items-start space-x-2">
+                  <div class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 text-[10px] font-bold">DP</div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-slate-900 text-[11px] truncate">Grille CVs extraite du CPS</p>
+                    <p class="text-[10px] text-slate-500">CyberRFP Engine · Aujourd'hui</p>
+                  </div>
+                </div>
+                <div class="flex items-start space-x-2">
+                  <div class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 text-[10px] font-bold">DP</div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-slate-900 text-[11px] truncate">Chiffrage BPE & TVA 20%</p>
+                    <p class="text-[10px] text-slate-500">DPA Commercial · Aujourd'hui</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-[11px] text-slate-400">Actions récentes</span>
+              <a href="javascript:void(0)" onclick="openHuduDetailTab('fin')" class="font-semibold text-blue-600 hover:text-blue-800">View all</a>
+            </div>
+          </div>
+
+          <!-- Card 8: Stats (Exact match to screenshot 4-number layout!) -->
+          <div class="bg-white rounded-xl shadow-xs border border-slate-200 border-t-4 border-t-amber-500 p-4 flex flex-col justify-between h-[270px]">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h4 class="font-bold text-slate-900 text-sm">Stats</h4>
+                <i data-lucide="bar-chart-2" class="w-4 h-4 text-slate-300"></i>
+              </div>
+              <div class="grid grid-cols-2 gap-3 pt-3">
+                <div class="text-left">
+                  <div class="text-2xl font-black text-slate-900" id="hudu-stat-admin-count">7</div>
+                  <div class="text-[11px] text-slate-500 font-medium">Pièces Admin</div>
+                </div>
+                <div class="text-left">
+                  <div class="text-2xl font-black text-slate-900" id="hudu-stat-profiles-count">4</div>
+                  <div class="text-[11px] text-slate-500 font-medium">Profils RH</div>
+                </div>
+                <div class="text-left pt-2">
+                  <div class="text-2xl font-black text-amber-600" id="hudu-stat-caution">10K</div>
+                  <div class="text-[11px] text-slate-500 font-medium">Caution (MAD)</div>
+                </div>
+                <div class="text-left pt-2">
+                  <div class="text-2xl font-black text-emerald-600">100%</div>
+                  <div class="text-[11px] text-slate-500 font-medium">Décret 2-22-431</div>
+                </div>
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span class="text-[11px] text-slate-400">Conformité DPA</span>
+              <a href="javascript:void(0)" onclick="openHuduDetailTab('admin')" class="font-semibold text-blue-600 hover:text-blue-800">View all</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ==================== DETAILED TABLES & CVs VIEW ==================== -->
+      <div id="subfolder-details-view" class="hidden flex-1 flex flex-col overflow-hidden bg-white">
+        <!-- Tab Navigation Bar -->
+        <div class="flex border-b border-slate-200 bg-slate-100/70 px-4 sm:px-6 pt-2 gap-2 overflow-x-auto text-xs font-bold shrink-0">
+          <button id="subfolder-tab-btn-admin" onclick="switchSubmissionTab('admin')" class="px-4 py-2.5 border-b-2 border-amber-600 text-amber-700 bg-white rounded-t-xl transition flex items-center space-x-2 shrink-0 shadow-sm">
+            <i data-lucide="folder-check" class="w-4 h-4 text-amber-600"></i>
+            <span>1. Dossier Administratif</span>
+            <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-[10px]">7 Pièces</span>
+          </button>
+          <button id="subfolder-tab-btn-tech" onclick="switchSubmissionTab('tech')" class="px-4 py-2.5 border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:bg-white/50 rounded-t-xl transition flex items-center space-x-2 shrink-0">
+            <i data-lucide="users" class="w-4 h-4 text-emerald-600"></i>
+            <span>2. Offre Technique & CVs Profils</span>
+            <span id="subfolder-tab-profiles-count" class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px]">0 Profils</span>
+          </button>
+          <button id="subfolder-tab-btn-fin" onclick="switchSubmissionTab('fin')" class="px-4 py-2.5 border-b-2 border-transparent text-slate-600 hover:text-slate-900 hover:bg-white/50 rounded-t-xl transition flex items-center space-x-2 shrink-0">
+            <i data-lucide="calculator" class="w-4 h-4 text-blue-600"></i>
+            <span>3. Offre Financière</span>
+            <span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-[10px]">BPE & Chiffrage</span>
+          </button>
+        </div>
+
+        <!-- Sub-Modal Detailed Body -->
+        <div class="p-5 sm:p-6 overflow-y-auto flex-1 text-xs space-y-6">
+          
+          <!-- TAB 1: DOSSIER ADMINISTRATIF -->
+          <div id="subfolder-tab-admin-content" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <div>
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Entreprise Soumissionnaire</span>
+                <span class="text-slate-900 font-extrabold text-xs mt-0.5 block flex items-center space-x-1">
+                  <span>DataProtech (DPA)</span>
+                  <span class="px-1.5 py-0.2 bg-amber-100 text-amber-800 rounded text-[9px] font-bold">ICE 003102490000030</span>
+                </span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Signataire Habilité</span>
+                <span class="text-slate-900 font-bold text-xs mt-0.5 block">M. John Doe</span>
+                <span class="text-[10px] text-slate-500">PV de nomination / Pouvoir habilité</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Caution Provisoire Exigée</span>
+                <span id="subfolder-admin-caution" class="text-amber-700 font-extrabold text-xs mt-0.5 block"></span>
+                <span class="text-[10px] text-slate-500">Caution bancaire à bloquer</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Régularité Légale</span>
+                <span class="text-emerald-700 font-bold text-xs mt-0.5 block">Attestations DGI & CNSS</span>
+                <span class="text-[10px] text-slate-500">Validité certifiée &lt; 1 an</span>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-slate-900 flex items-center space-x-2 text-sm">
+                <i data-lucide="file-check-2" class="w-4 h-4 text-amber-600"></i>
+                <span>Pièces Réglementaires Obligatoires (Décret n° 2-22-431)</span>
+              </h4>
+              <span class="text-xs text-slate-500">Cochez les documents prêts au fur et à mesure pour validation</span>
+            </div>
+
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm bg-white">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[10px] font-bold">
+                  <tr>
+                    <th class="py-3 px-3 w-12 text-center">Prêt</th>
+                    <th class="py-3 px-3 w-12 text-center">N°</th>
+                    <th class="py-3 px-4 w-60">Document à préparer</th>
+                    <th class="py-3 px-4">Exigence Réglementaire</th>
+                    <th class="py-3 px-4 w-52">Format Exigé</th>
+                    <th class="py-3 px-3 w-32 text-center">Statut DPA</th>
+                  </tr>
+                </thead>
+                <tbody id="subfolder-admin-tbody" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB 2: OFFRE TECHNIQUE & CVs PROFILS -->
+          <div id="subfolder-tab-tech-content" class="space-y-5 hidden">
+            <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-slate-50 p-4 rounded-2xl border border-emerald-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div class="space-y-1">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <h4 class="font-bold text-slate-900 text-sm">Matrice des Profils & CVs Requis par le Marché</h4>
+                </div>
+                <p class="text-xs text-slate-600">Extraction directe des exigences RH du Cahier des Prescriptions Spéciales (CPS) pour le montage de l'équipe technique DPA.</p>
+              </div>
+              <div class="flex items-center space-x-2 shrink-0">
+                <div class="bg-white px-3 py-1.5 rounded-xl border border-slate-200 text-center">
+                  <span class="text-[10px] text-slate-400 block font-bold uppercase">Profils Requis</span>
+                  <span id="subfolder-tech-profile-count-pill" class="text-sm font-extrabold text-emerald-700">0</span>
+                </div>
+                <div class="bg-white px-3 py-1.5 rounded-xl border border-slate-200 text-center">
+                  <span class="text-[10px] text-slate-400 block font-bold uppercase">Vivier DPA</span>
+                  <span class="text-sm font-extrabold text-amber-600">Opérationnel</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 1: Technical Deliverables -->
+            <div class="space-y-2">
+              <h4 class="font-bold text-slate-900 flex items-center space-x-2 text-xs">
+                <i data-lucide="layers" class="w-4 h-4 text-emerald-600"></i>
+                <span>Livrables Techniques & Méthodologie Obligatoires (7 Pièces)</span>
+              </h4>
+              <div id="subfolder-tech-docs-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5"></div>
+            </div>
+
+            <!-- Section 2: Profiles & CVs Table (Based on user Excel template) -->
+            <div class="space-y-2.5 pt-2">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h4 class="font-bold text-slate-900 flex items-center space-x-2 text-xs">
+                  <i data-lucide="user-check" class="w-4 h-4 text-emerald-600"></i>
+                  <span>Grille Détaillée des Profils, Expériences & Certifications Requises (Modèle Excel DPA)</span>
+                </h4>
+                <div class="w-full sm:w-64">
+                  <input type="text" id="subfolder-profiles-filter" oninput="filterSubfolderProfiles(this.value)" placeholder="Filtrer profils ou certifications..." class="w-full px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs placeholder:text-slate-400 focus:outline-none focus:border-emerald-500">
+                </div>
+              </div>
+
+              <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm bg-white">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[10px] font-bold">
+                    <tr>
+                      <th class="py-3 px-3 w-10 text-center">#</th>
+                      <th class="py-3 px-4 w-64">Profil Demandé</th>
+                      <th class="py-3 px-3 w-28 text-center">Expérience min.</th>
+                      <th class="py-3 px-4">Compétences Principales</th>
+                      <th class="py-3 px-4 w-60">Certifications Demandées / Souhaitées</th>
+                      <th class="py-3 px-3 w-24 text-center">Lot</th>
+                      <th class="py-3 px-3 w-36 text-center">Statut Vivier DPA</th>
+                    </tr>
+                  </thead>
+                  <tbody id="subfolder-profiles-tbody" class="divide-y divide-slate-100"></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- TAB 3: OFFRE FINANCIÈRE -->
+          <div id="subfolder-tab-fin-content" class="space-y-5 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Budget Estimatif du Marché (TTC)</span>
+                <span id="subfolder-fin-budget-ttc" class="text-slate-900 font-extrabold text-base mt-1 block"></span>
+                <span class="text-[10px] text-slate-500">Fixé par l'Acheteur public au CPS</span>
+              </div>
+              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Estimation DPA Hors Taxes (HT)</span>
+                <span id="subfolder-fin-budget-ht" class="text-emerald-700 font-extrabold text-base mt-1 block"></span>
+                <span class="text-[10px] text-slate-500">Base de calcul de l'Acte d'Engagement</span>
+              </div>
+              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">TVA Réglementaire (20%)</span>
+                <span id="subfolder-fin-budget-tva" class="text-blue-700 font-extrabold text-base mt-1 block"></span>
+                <span class="text-[10px] text-slate-500">Taxe sur la Valeur Ajoutée au Maroc</span>
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <h4 class="font-bold text-slate-900 flex items-center space-x-2 text-xs">
+                <i data-lucide="coins" class="w-4 h-4 text-blue-600"></i>
+                <span>Pièces Constitutives de l'Offre Financière (Décret n° 2-22-431)</span>
+              </h4>
+              <div id="subfolder-fin-docs-container" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+            </div>
+
+            <div class="bg-blue-50/70 border border-blue-200 rounded-2xl p-4 text-xs text-blue-900 space-y-1">
+              <span class="font-bold block">💡 Conseil Soumission DPA :</span>
+              <p>Vérifiez scrupuleusement la cohérence entre le montant en chiffres et le montant en toutes lettres dans l'Acte d'Engagement. En cas de divergence, le montant en toutes lettres fait foi devant la commission d'appel d'offres.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Sub-Modal Footer -->
+      <div class="p-3.5 border-t border-slate-200 bg-white flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center space-x-3">
+          <button onclick="downloadActiveTenderDCE()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm transition">
+            <i data-lucide="download" class="w-4 h-4 text-amber-300"></i>
+            <span>Télécharger DCE Complet (1-Clic)</span>
+          </button>
+          <a id="subfolder-portal-link" href="#" target="_blank" class="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition">
+            <i data-lucide="external-link" class="w-3.5 h-3.5 text-emerald-600"></i>
+            <span>Lien Source Officielle ↗</span>
+          </a>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="closeSubmissionFolderModal()" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition">
+            Fermer
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== MOBILE & IPHONE ACCESS QR MODAL ==================== -->
+  <div id="mobile-qr-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden transform transition-all">
+      
+      <!-- Modal Header -->
+      <div class="bg-slate-900 p-5 text-white flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-slate-950 shadow-md">
+            <i data-lucide="smartphone" class="w-5 h-5 text-slate-950"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold text-white">Connexion iPhone & Mobile (Direction / CEO)</h3>
+            <p class="text-xs text-slate-400">Accès instantané sur smartphone via le même Wi-Fi</p>
+          </div>
+        </div>
+        <button onclick="closeMobileQrModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-5 text-center">
+        <div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Serveur Actif sur Réseau Local Wi-Fi</span>
+        </div>
+
+        <!-- QR Code Container -->
+        <div class="flex flex-col items-center justify-center space-y-2">
+          <div class="p-3 bg-white border-2 border-dashed border-amber-300 dark:border-amber-600/60 rounded-2xl shadow-sm inline-block">
+            <img id="mobile-qr-img" src="" alt="QR Code iPhone" class="w-48 h-48 rounded-xl object-contain">
+          </div>
+          <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Pointez l'appareil photo de l'iPhone sur ce code</span>
+        </div>
+
+        <!-- Direct LAN URL & Copy Button -->
+        <div class="space-y-1.5 text-left">
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Adresse URL pour l'iPhone (Safari) :</label>
+          <div class="flex items-center space-x-2">
+            <input type="text" id="mobile-url-input" readonly class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none">
+            <button onclick="copyMobileUrl()" class="px-3.5 py-2 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white rounded-xl text-xs font-bold shrink-0 transition flex items-center space-x-1.5">
+              <i data-lucide="copy" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span id="copy-btn-text">Copier</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3-Step Guide for CEO iPhone -->
+        <div class="bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 rounded-2xl p-4 text-left text-xs text-amber-950 dark:text-amber-200 space-y-2.5">
+          <div class="font-bold flex items-center space-x-1.5 text-amber-900 dark:text-amber-300">
+            <i data-lucide="sparkles" class="w-4 h-4 text-amber-600"></i>
+            <span>Installation en 3 étapes comme Application Native iOS :</span>
+          </div>
+          <ol class="list-decimal list-inside space-y-1 text-slate-700 dark:text-slate-300 text-[11px] leading-relaxed">
+            <li>Connectez l'iPhone au <strong>même réseau Wi-Fi</strong> que cet ordinateur.</li>
+            <li>Scannez le QR Code ou ouvrez le lien dans <strong>Safari</strong> sur votre iPhone.</li>
+            <li>Touchez le bouton Partager <strong>[ ⎋ ]</strong> en bas de Safari, puis sélectionnez <strong>« Sur l'écran d'accueil »</strong> pour avoir l'icône DPA sur l'iPhone !</li>
+          </ol>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <button onclick="testEmailNotificationFromUI()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 transition">
+          <i data-lucide="send" class="w-3.5 h-3.5 text-amber-300"></i>
+          <span>Tester Alerte Email sur Mobile</span>
+        </button>
+        <button onclick="closeMobileQrModal()" class="px-5 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-bold transition">
+          Fermer
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== IPHONE & MOBILE BOTTOM NAVIGATION BAR ==================== -->
+  <div class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-950/95 border-t border-slate-800 backdrop-blur-lg z-40 px-3 py-2 flex items-center justify-around text-[10px] text-slate-400 font-semibold safe-area-inset-bottom">
+    <button onclick="switchTab('tenders'); setCategoryFilter('ALL');" class="flex flex-col items-center space-y-1 hover:text-white">
+      <i data-lucide="layout-grid" class="w-4 h-4 text-orange-400"></i>
+      <span>Toutes</span>
+    </button>
+    <button onclick="switchTab('tenders'); setCategoryFilter('CYBERSECURITY');" class="flex flex-col items-center space-y-1 hover:text-white">
+      <i data-lucide="shield-alert" class="w-4 h-4 text-emerald-400"></i>
+      <span>Cyber</span>
+    </button>
+    <button onclick="setQuickChip('TRACKED')" class="flex flex-col items-center space-y-1 hover:text-white">
+      <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+      <span>Suivis (<span id="mobile-tracked-count">0</span>)</span>
+    </button>
+    <button onclick="openSubmissionFolderModal('dashboard')" class="flex flex-col items-center space-y-1 hover:text-white">
+      <i data-lucide="folder-check" class="w-4 h-4 text-blue-400"></i>
+      <span>Dossier</span>
+    </button>
+    <button onclick="openMobileQrModal()" class="flex flex-col items-center space-y-1 hover:text-white">
+      <i data-lucide="smartphone" class="w-4 h-4 text-purple-400"></i>
+      <span>iPhone QR</span>
+    </button>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- Real-Time RFP On-Screen Live Pop-Up Container -->
+  <div id="rfp-live-popup-container" class="fixed bottom-6 right-6 z-50 max-w-md w-[92vw] sm:w-[420px] pointer-events-none space-y-3"></div>
+
+  <script src="/static/app.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

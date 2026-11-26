@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion — CyberRFP Maroc | DataProtech Group</title>
+  <link rel="icon" type="image/png" href="/static/dpa_logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .cyber-grid {
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 flex items-center justify-center p-4 cyber-grid relative overflow-x-hidden">
+
+  <!-- Ambient Cyber Lighting -->
+  <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[350px] bg-gradient-to-tr from-amber-500/10 via-emerald-500/15 to-blue-500/10 blur-[130px] rounded-full pointer-events-none"></div>
+
+  <!-- Main Login Card Container -->
+  <div class="relative w-full max-w-lg z-10">
+
+    <!-- Brand Header -->
+    <div class="text-center mb-6 space-y-3">
+      <div class="inline-flex items-center justify-center p-3.5 bg-white/95 rounded-2xl shadow-xl border border-white/20">
+        <img src="/static/dpa_logo.png" alt="DataProtech Company Logo" class="h-10 w-auto object-contain">
+      </div>
+      <div>
+        <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center justify-center space-x-2">
+          <span>CyberRFP Maroc</span>
+          <span class="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">v4.0 Pro</span>
+        </h1>
+        <p class="text-xs text-slate-400 mt-1">Plateforme Sécurisée de Veille des Marchés Publics & Soumission DPA</p>
+      </div>
+
+      <!-- Domain restriction notice -->
+      <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800 text-[11px] text-slate-300">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Accès réservé aux collaborateurs : <strong class="text-amber-400 font-mono">@dpg-cyber.com</strong></span>
+      </div>
+    </div>
+
+    <!-- Auth Card -->
+    <div class="backdrop-blur-xl bg-slate-900/85 border border-slate-800/90 shadow-2xl rounded-3xl overflow-hidden p-6 sm:p-8 space-y-6">
+
+      <!-- Navigation Tabs -->
+      <div class="grid grid-cols-2 p-1 bg-slate-950/70 border border-slate-800 rounded-2xl text-xs font-bold">
+        <button id="tab-btn-login" onclick="switchAuthTab('login')" class="py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 bg-amber-500 text-slate-950 shadow-md">
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+          <span>Connexion</span>
+        </button>
+        <button id="tab-btn-register" onclick="switchAuthTab('register')" class="py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 text-slate-400 hover:text-white">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+          <span>Créer un Compte</span>
+        </button>
+      </div>
+
+      <!-- Alert / Feedback Banner -->
+      <div id="auth-alert" class="hidden p-3.5 rounded-xl text-xs flex items-start space-x-2.5 border">
+        <i id="auth-alert-icon" data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5"></i>
+        <div class="space-y-0.5 flex-1" id="auth-alert-msg"></div>
+      </div>
+
+      <!-- ==================== 1. LOGIN FORM ==================== -->
+      <form id="form-login" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-300">Adresse Email Professionnelle</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+              <i data-lucide="mail" class="w-4 h-4"></i>
+            </div>
+            <input 
+              type="text" 
+              id="login-email" 
+              required
+              placeholder="john.doe@dpg-cyber.com"
+              class="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition font-medium"
+            >
+          </div>
+          <p class="text-[11px] text-slate-400">Identifiant court DPA (ex: <code class="text-amber-400">john.doe@dpg-cyber.com</code> ou <code class="text-amber-400">admin@dpg-cyber.com</code>)</p>
+        </div>
+
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <label for="login-password" class="block text-xs font-semibold text-slate-300">Mot de Passe</label>
+            <button type="button" onclick="switchAuthTab('forgot')" class="text-xs font-semibold text-amber-400 hover:text-amber-300 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded px-1">Mot de passe oublié ?</button>
+          </div>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+              <i data-lucide="lock" class="w-4 h-4"></i>
+            </div>
+            <input 
+              type="password" 
+              id="login-password" 
+              required
+              placeholder="••••••••••••"
+              class="w-full pl-10 pr-10 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-base sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+            >
+            <button type="button" aria-label="Afficher ou masquer le mot de passe" onclick="togglePasswordVisibility('login-password')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-200 transition">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
+          <label class="flex items-center space-x-2 cursor-pointer select-none">
+            <input type="checkbox" id="login-remember" checked class="w-4 h-4 rounded bg-slate-950 border-slate-800 text-amber-500 focus:ring-amber-500">
+            <span>Se souvenir de moi</span>
+          </label>
+        </div>
+
+        <button 
+          type="submit" 
+          id="btn-login-submit"
+          class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-[0.99] text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-2"
+        >
+          <span>Accéder au Dashboard</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+
+      <!-- ==================== 2. REGISTER FORM ==================== -->
+      <form id="form-register" onsubmit="handleRegisterSubmit(event)" class="space-y-4 hidden">
+        <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-300 space-y-1">
+          <p class="font-bold flex items-center space-x-1.5">
+            <i data-lucide="shield-alert" class="w-4 h-4"></i>
+            <span>Règle d'éligibilité DataProtech :</span>
+          </p>
+          <p class="text-[11px] text-amber-200/90 leading-relaxed">
+            Seules les adresses e-mail appartenant au domaine officiel <strong>@dpg-cyber.com</strong> sont habilitées à créer un compte.
+          </p>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-300">Nom Complet</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+              <i data-lucide="user" class="w-4 h-4"></i>
+            </div>
+            <input 
+              type="text" 
+              id="reg-fullname" 
+              required
+              placeholder="ex: John Doe"
+              class="w-full pl-10 pr-4 py-2 bg-slate-950/80 border border-slate-800 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 transition"
+            >
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-300">Email Collaborateur (@dpg-cyber.com)</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+              <i data-lucide="mail" class="w-4 h-4"></i>
+            </div>
+            <input 
+              type="email" 
+              id="reg-email" 
+              required
+              placeholder="john.doe@dpg-cyber.com"
+              class="w-full pl-10 pr-4 py-2 bg-slate-950/80 border border-slate-800 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 transition"
+            >
+          </div>
+          <p class="text-[11px] text-slate-400">Format DPA : <strong>prenom.nom@dpg-cyber.com</strong> (ex: <code class="text-amber-400">john.doe@dpg-cyber.com</code>)</p>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-300">Rôle / Spécialité</label>
+          <select id="reg-role" class="w-full px-3 py-2 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500">
+            <option value="Consultant Cybersécurité">Consultant Cybersécurité</option>
+            <option value="Ingénieur Réseau, Firewall & Cloud">Ingénieur Réseau, Firewall & Cloud</option>
+            <option value="Auditeur SSI & Pentest">Auditeur SSI & Pentest</option>
+            <option value="Ingénieur Avant-Vente & Réponse AO">Ingénieur Avant-Vente & Réponse AO</option>
+            <option value="Chef de Projet / PMO">Chef de Projet / PMO</option>
+            <option value="Direction Générale / Management">Direction Générale / Management</option>
+          </select>
+        </div>
+
+        <!-- Password Mode Selection -->
+        <div class="space-y-2 pt-1">
+          <label class="block text-xs font-semibold text-slate-300">Option de Mot de Passe</label>
+          <div class="space-y-2">
+            <label class="flex items-start space-x-2.5 p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 cursor-pointer hover:border-slate-700 transition">
+              <input type="radio" name="pwd-mode" id="pwd-mode-email" value="email" checked onchange="togglePwdMode()" class="mt-0.5 text-amber-500 focus:ring-amber-500">
+              <div class="text-xs">
+                <span class="font-bold text-white block">✉️ Générer & Envoyer par Email (Recommandé)</span>
+                <span class="text-slate-400 text-[11px]">Un mot de passe sécurisé sera généré et envoyé directement à votre boîte @dpg-cyber.com.</span>
+              </div>
+            </label>
+
+            <label class="flex items-start space-x-2.5 p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 cursor-pointer hover:border-slate-700 transition">
+              <input type="radio" name="pwd-mode" id="pwd-mode-custom" value="custom" onchange="togglePwdMode()" class="mt-0.5 text-amber-500 focus:ring-amber-500">
+              <div class="text-xs">
+                <span class="font-bold text-white block">🔒 Définir mon mot de passe manuellement</span>
+                <span class="text-slate-400 text-[11px]">Choisir un mot de passe immédiatement dès l'inscription.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div id="custom-password-container" class="space-y-1.5 hidden">
+          <label class="block text-xs font-semibold text-slate-300">Votre Mot de Passe</label>
+          <input 
+            type="password" 
+            id="reg-password" 
+            placeholder="Minimum 8 caractères"
+            class="w-full px-3 py-2 bg-slate-950/80 border border-slate-800 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 transition"
+          >
+        </div>
+
+        <button 
+          type="submit" 
+          id="btn-register-submit"
+          class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:scale-[0.99] text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-2"
+        >
+          <span>Créer mon Compte DPA</span>
+          <i data-lucide="check" class="w-4 h-4"></i>
+        </button>
+      </form>
+
+      <!-- ==================== 3. FORGOT PASSWORD FORM ==================== -->
+      <form id="form-forgot" onsubmit="handleForgotSubmit(event)" class="space-y-4 hidden">
+        <div class="space-y-1">
+          <h3 class="text-sm font-bold text-white flex items-center space-x-1.5">
+            <i data-lucide="key" class="w-4 h-4 text-amber-400"></i>
+            <span>Récupération / Définition du mot de passe</span>
+          </h3>
+          <p class="text-xs text-slate-400">
+            Saisissez votre adresse <strong class="text-white">@dpg-cyber.com</strong>. Nous vous enverrons immédiatement un lien sécurisé pour définir votre nouveau mot de passe.
+          </p>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-300">Email Collaborateur (@dpg-cyber.com)</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+              <i data-lucide="mail" class="w-4 h-4"></i>
+            </div>
+            <input 
+              type="email" 
+              id="forgot-email" 
+              required
+              placeholder="john.doe@dpg-cyber.com"
+              class="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 transition"
+            >
+          </div>
+        </div>
+
+        <button 
+          type="submit" 
+          id="btn-forgot-submit"
+          class="w-full py-3 bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-2"
+        >
+          <span>M'envoyer le lien par Email</span>
+          <i data-lucide="send" class="w-4 h-4"></i>
+        </button>
+
+        <div class="text-center pt-2">
+          <button type="button" onclick="switchAuthTab('login')" class="text-xs font-semibold text-slate-400 hover:text-white transition flex items-center justify-center space-x-1 mx-auto">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+            <span>Retour à la connexion</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- ==================== 4. RESET PASSWORD FORM (WITH TOKEN) ==================== -->
+      <form id="form-reset" onsubmit="handleResetSubmit(event)" class="space-y-4 hidden">
+        <div class="space-y-1">
+          <h3 class="text-sm font-bold text-white flex items-center space-x-1.5">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            <span>Définir votre Nouveau Mot de Passe</span>
+          </h3>
+          <p class="text-xs text-slate-400">
+            Votre jeton de sécurité a été validé. Veuillez renseigner votre nouveau mot de passe.
+          </p>
+        </div>
+
+        <input type="hidden" id="reset-token-input">
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-300">Nouveau Mot de Passe</label>
+          <input 
+            type="password" 
+            id="reset-new-password" 
+            required
+            placeholder="Minimum 8 caractères"
+            class="w-full px-3 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 transition"
+          >
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-300">Confirmer le Mot de Passe</label>
+          <input 
+            type="password" 
+            id="reset-confirm-password" 
+            required
+            placeholder="Confirmez à l'identique"
+            class="w-full px-3 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 transition"
+          >
+        </div>
+
+        <button 
+          type="submit" 
+          id="btn-reset-submit"
+          class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.99] text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-2"
+        >
+          <span>Enregistrer le Nouveau Mot de Passe</span>
+          <i data-lucide="check" class="w-4 h-4"></i>
+        </button>
+      </form>
+
+      <!-- ==================== 5. FIRST LOGIN PASSWORD CHANGE FORM ==================== -->
+      <form id="form-first-login-change" onsubmit="handleFirstLoginPasswordChange(event)" class="space-y-4 hidden">
+        <div class="space-y-1">
+          <div class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[11px] font-bold">
+            <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+            <span>Action requise : Première connexion</span>
+          </div>
+          <h3 class="text-base font-bold text-white pt-1">Définissez votre Mot de Passe Personnel</h3>
+          <p class="text-xs text-slate-400">
+            Bienvenue dans l'équipe DataProtech. Veuillez remplacer le mot de passe temporaire par un mot de passe personnel sécurisé.
+          </p>
+        </div>
+
+        <div class="p-2.5 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+          <span class="text-slate-400">Compte collaborateur :</span>
+          <span id="first-login-user-email" class="font-mono font-bold text-amber-400"></span>
+        </div>
+
+        <input type="hidden" id="first-login-email-input">
+        <input type="hidden" id="first-login-temp-password-input">
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-300">Nouveau Mot de Passe</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+              <i data-lucide="lock" class="w-4 h-4"></i>
+            </div>
+            <input 
+              type="password" 
+              id="first-login-new-password" 
+              required
+              placeholder="Minimum 8 caractères"
+              class="w-full pl-10 pr-10 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 transition"
+            >
+            <button type="button" onclick="togglePasswordVisibility('first-login-new-password')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 transition">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-slate-300">Confirmer le Nouveau Mot de Passe</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+              <i data-lucide="check-check" class="w-4 h-4"></i>
+            </div>
+            <input 
+              type="password" 
+              id="first-login-confirm-password" 
+              required
+              placeholder="Confirmez à l'identique"
+              class="w-full pl-10 pr-10 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 transition"
+            >
+            <button type="button" onclick="togglePasswordVisibility('first-login-confirm-password')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 transition">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <button 
+          type="submit" 
+          id="btn-first-login-submit"
+          class="w-full py-3 bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-600 hover:to-emerald-600 active:scale-[0.99] text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-2"
+        >
+          <span>Activer mon Compte & Accéder au Dashboard</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+
+    </div>
+
+    <!-- Security Footer -->
+    <div class="text-center mt-6 text-slate-500 text-xs space-y-1">
+      <p>© 2026 DataProtech Company (DPA) · ICE 003102490000030 · Tous droits réservés.</p>
+      <p class="text-[11px] text-slate-600">Connexion chiffrée SSL/TLS · Décret des Marchés Publics n° 2-22-431</p>
+    </div>
+
+  </div>
+
+  <script>
+    // Tab switching logic
+    function switchAuthTab(tab) {
+      hideAlert();
+      const loginForm = document.getElementById("form-login");
+      const regForm = document.getElementById("form-register");
+      const forgotForm = document.getElementById("form-forgot");
+      const resetForm = document.getElementById("form-reset");
+      const firstLoginForm = document.getElementById("form-first-login-change");
+
+      const btnLogin = document.getElementById("tab-btn-login");
+      const btnRegister = document.getElementById("tab-btn-register");
+
+      loginForm.classList.add("hidden");
+      regForm.classList.add("hidden");
+      forgotForm.classList.add("hidden");
+      resetForm.classList.add("hidden");
+      if (firstLoginForm) firstLoginForm.classList.add("hidden");
+
+      if (tab === 'login') {
+        loginForm.classList.remove("hidden");
+        btnLogin.className = "py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 bg-amber-500 text-slate-950 shadow-md";
+        btnRegister.className = "py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 text-slate-400 hover:text-white";
+      } else if (tab === 'register') {
+        regForm.classList.remove("hidden");
+        btnRegister.className = "py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 bg-amber-500 text-slate-950 shadow-md";
+        btnLogin.className = "py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 text-slate-400 hover:text-white";
+      } else if (tab === 'forgot') {
+        forgotForm.classList.remove("hidden");
+        btnLogin.className = "py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 text-slate-400 hover:text-white";
+        btnRegister.className = "py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 text-slate-400 hover:text-white";
+      } else if (tab === 'reset') {
+        resetForm.classList.remove("hidden");
+        btnLogin.className = "py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 text-slate-400 hover:text-white";
+        btnRegister.className = "py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 text-slate-400 hover:text-white";
+      } else if (tab === 'first-login') {
+        if (firstLoginForm) firstLoginForm.classList.remove("hidden");
+        btnLogin.className = "py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 text-slate-400 hover:text-white";
+        btnRegister.className = "py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 text-slate-400 hover:text-white";
+      }
+      lucide.createIcons();
+    }
+
+    function togglePwdMode() {
+      const modeCustom = document.getElementById("pwd-mode-custom").checked;
+      const container = document.getElementById("custom-password-container");
+      if (modeCustom) {
+        container.classList.remove("hidden");
+      } else {
+        container.classList.add("hidden");
+      }
+    }
+
+    function togglePasswordVisibility(inputId) {
+      const input = document.getElementById(inputId);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function showAlert(type, title, message) {
+      const alert = document.getElementById("auth-alert");
+      const icon = document.getElementById("auth-alert-icon");
+      const msg = document.getElementById("auth-alert-msg");
+
+      alert.classList.remove("hidden", "bg-red-500/10", "border-red-500/30", "text-red-400", "bg-emerald-500/10", "border-emerald-500/30", "text-emerald-400", "bg-amber-500/10", "border-amber-500/30", "text-amber-400");
+
+      if (type === 'error') {
+        alert.classList.add("bg-red-500/10", "border-red-500/30", "text-red-400");
+        icon.setAttribute("data-lucide", "alert-circle");
+      } else if (type === 'success') {
+        alert.classList.add("bg-emerald-500/10", "border-emerald-500/30", "text-emerald-400");
+        icon.setAttribute("data-lucide", "check-circle");
+      } else {
+        alert.classList.add("bg-amber-500/10", "border-amber-500/30", "text-amber-400");
+        icon.setAttribute("data-lucide", "info");
+      }
+
+      msg.innerHTML = "";
+      const titleEl = document.createElement("span");
+      titleEl.className = "font-bold block";
+      titleEl.textContent = String(title || "");
+      const bodyEl = document.createElement("span");
+      bodyEl.className = "block";
+      bodyEl.textContent = String(message || "");
+      msg.appendChild(titleEl);
+      msg.appendChild(bodyEl);
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function hideAlert() {
+      document.getElementById("auth-alert").classList.add("hidden");
+    }
+
+    // Submit Handlers
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      hideAlert();
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+      const remember = document.getElementById("login-remember").checked;
+      const btn = document.getElementById("btn-login-submit");
+
+      btn.disabled = true;
+      btn.innerHTML = `<span>Vérification...</span>`;
+
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, remember_me: remember })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Identifiants invalides");
+
+        // First login detected: mandatory personal password creation
+        if (data.status === "must_change_password") {
+          document.getElementById("first-login-email-input").value = email;
+          document.getElementById("first-login-temp-password-input").value = password;
+          document.getElementById("first-login-user-email").textContent = email;
+          switchAuthTab('first-login');
+          showAlert("info", "Première connexion requise", "Pour la sécurité de votre compte @dpg-cyber.com, veuillez définir votre mot de passe personnel.");
+          btn.disabled = false;
+          btn.innerHTML = `<span>Accéder au Dashboard</span><i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+          lucide.createIcons();
+          return;
+        }
+
+        showAlert("success", "Connexion réussie !", "Redirection vers le dashboard...");
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 800);
+      } catch (err) {
+        showAlert("error", "Échec d'authentification", err.message);
+        btn.disabled = false;
+        btn.innerHTML = `<span>Accéder au Dashboard</span><i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+        lucide.createIcons();
+      }
+    }
+
+    async function handleRegisterSubmit(e) {
+      e.preventDefault();
+      hideAlert();
+      const fullName = document.getElementById("reg-fullname").value.trim();
+      const email = document.getElementById("reg-email").value.trim();
+      const role = document.getElementById("reg-role").value;
+      const modeEmail = document.getElementById("pwd-mode-email").checked;
+      const customPassword = document.getElementById("reg-password").value;
+      const btn = document.getElementById("btn-register-submit");
+
+      // Verify domain client-side
+      if (!email.toLowerCase().endsWith("@dpg-cyber.com")) {
+        showAlert("error", "Domaine non autorisé", "Seules les adresses <strong>@dpg-cyber.com</strong> sont autorisées à créer un compte collaborateur.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<span>Création du compte...</span>`;
+
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            full_name: fullName,
+            role,
+            send_password_by_email: modeEmail,
+            password: modeEmail ? null : customPassword
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Erreur de création de compte");
+
+        let msg = `Votre compte collaborateur a été créé avec succès pour <strong>${email}</strong>.`;
+        if (data.temp_password_preview) {
+          msg += `<br><span class="mt-2 block bg-slate-950 p-2 rounded border border-emerald-500/40 text-emerald-300 font-mono text-xs">Mot de passe temporaire : <strong>${data.temp_password_preview}</strong></span>`;
+        } else if (data.email_sent) {
+          msg += `<br>Un email contenant votre mot de passe a été expédié à votre boîte professionnelle @dpg-cyber.com.`;
+        }
+
+        showAlert("success", "Compte DPA Créé !", msg);
+        setTimeout(() => {
+          switchAuthTab('login');
+          document.getElementById("login-email").value = email;
+          if (data.temp_password_preview) {
+            document.getElementById("login-password").value = data.temp_password_preview;
+          }
+        }, 3500);
+      } catch (err) {
+        showAlert("error", "Erreur d'inscription", err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span>Créer mon Compte DPA</span><i data-lucide="check" class="w-4 h-4"></i>`;
+        lucide.createIcons();
+      }
+    }
+
+    async function handleForgotSubmit(e) {
+      e.preventDefault();
+      hideAlert();
+      const email = document.getElementById("forgot-email").value.trim();
+      const btn = document.getElementById("btn-forgot-submit");
+
+      if (!email.toLowerCase().endsWith("@dpg-cyber.com")) {
+        showAlert("error", "Domaine invalide", "Veuillez renseigner votre adresse officielle @dpg-cyber.com.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<span>Génération du lien...</span>`;
+
+      try {
+        const res = await fetch("/api/auth/forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Erreur d'envoi");
+
+        let msg = `Si cette adresse existe, un lien sécurisé a été transmis à <strong>${email}</strong>.`;
+        if (data.reset_link_preview) {
+          msg += `<br><span class="mt-2 block bg-slate-950 p-2 rounded border border-amber-500/40 text-amber-300 text-[11px]"><a href="${data.reset_link_preview}" class="underline font-bold">Cliquez ici pour réinitialiser immédiatement (Lien direct) ↗</a></span>`;
+        }
+
+        showAlert("info", "Demande transmise", msg);
+      } catch (err) {
+        showAlert("error", "Erreur", err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span>M'envoyer le lien par Email</span><i data-lucide="send" class="w-4 h-4"></i>`;
+        lucide.createIcons();
+      }
+    }
+
+    async function handleResetSubmit(e) {
+      e.preventDefault();
+      hideAlert();
+      const token = document.getElementById("reset-token-input").value;
+      const newPwd = document.getElementById("reset-new-password").value;
+      const confirmPwd = document.getElementById("reset-confirm-password").value;
+      const btn = document.getElementById("btn-reset-submit");
+
+      if (newPwd.length < 8) {
+        showAlert("error", "Mot de passe trop court", "Le mot de passe doit comporter au minimum 8 caractères.");
+        return;
+      }
+      if (newPwd !== confirmPwd) {
+        showAlert("error", "Mots de passe non concordants", "Les deux mots de passe saisis sont différents.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<span>Mise à jour...</span>`;
+
+      try {
+        const res = await fetch("/api/auth/reset-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, new_password: newPwd })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Jeton expiré ou invalide");
+
+        showAlert("success", "Mot de passe réinitialisé !", "Vous pouvez à présent vous connecter avec votre nouveau mot de passe.");
+        setTimeout(() => {
+          switchAuthTab('login');
+        }, 2000);
+      } catch (err) {
+        showAlert("error", "Échec de réinitialisation", err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span>Enregistrer le Nouveau Mot de Passe</span><i data-lucide="check" class="w-4 h-4"></i>`;
+        lucide.createIcons();
+      }
+    }
+
+    async function handleFirstLoginPasswordChange(e) {
+      e.preventDefault();
+      hideAlert();
+      const email = document.getElementById("first-login-email-input").value;
+      const temp_password = document.getElementById("first-login-temp-password-input").value;
+      const new_password = document.getElementById("first-login-new-password").value;
+      const confirm_password = document.getElementById("first-login-confirm-password").value;
+      const btn = document.getElementById("btn-first-login-submit");
+
+      if (new_password.length < 8) {
+        showAlert("error", "Mot de passe trop court", "Le mot de passe doit comporter au minimum 8 caractères.");
+        return;
+      }
+      if (new_password === temp_password) {
+        showAlert("error", "Mot de passe identique", "Veuillez choisir un nouveau mot de passe distinct du mot de passe temporaire.");
+        return;
+      }
+      if (new_password !== confirm_password) {
+        showAlert("error", "Non concordance", "Les deux mots de passe saisis ne sont pas identiques.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<span>Activation en cours...</span>`;
+
+      try {
+        const res = await fetch("/api/auth/change-initial-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, temp_password, new_password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Erreur lors de la configuration du mot de passe");
+
+        showAlert("success", "Compte activé avec succès !", "Votre mot de passe personnel a été enregistré. Redirection immédiate vers le dashboard...");
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
+      } catch (err) {
+        showAlert("error", "Erreur d'activation", err.message);
+        btn.disabled = false;
+        btn.innerHTML = `<span>Activer mon Compte & Accéder au Dashboard</span><i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+        lucide.createIcons();
+      }
+    }
+
+    // Check if token in URL for direct password reset
+    window.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      const params = new URLSearchParams(window.location.search);
+      const resetToken = params.get("token");
+      if (resetToken) {
+        document.getElementById("reset-token-input").value = resetToken;
+        switchAuthTab('reset');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cyberrfp
+  labels:
+    app.kubernetes.io/name: cyberrfp-maroc
+    app.kubernetes.io/part-of: dataprotech-platform

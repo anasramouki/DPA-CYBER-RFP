@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'CyberRFP Maroc — Radar & Veille Marchés Publics IT & Cybersécurité',
+  title: 'DPA-CYBER-RFP — Veille Marchés Publics & Cybersécurité',
   description:
-    'Plateforme de veille stratégique en temps réel des appels d\'offres au Maroc pour le secteur IT & Cybersécurité.',
+    'Plateforme DPA-CYBER-RFP de veille stratégique en temps réel des appels d\'offres cybersécurité et marchés publics au Maroc.',
 };
 
 export default function RootLayout({

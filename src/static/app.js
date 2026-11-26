@@ -103,7 +103,7 @@ const I18N = {
     kpi_downloaded_badge: "Sous Alerte",
 
     // Search & Filters
-    search_placeholder: "Recherche intelligente : Réf (11/2026), Média (Le Matin, L'Économiste), Acheteur, Technos (Firewall, EDR, SIEM, Audit...)",
+    search_placeholder: "Rechercher par mot-clé, référence, acheteur (ex: SOC, ANRT, Al Barid...)",
     btn_search: "Rechercher",
     btn_filters: "Filtres",
     txt_filter_by: "Filtrer par :",
@@ -191,7 +191,7 @@ const I18N = {
     kpi_downloaded_badge: "Under Alert",
 
     // Search & Filters
-    search_placeholder: "Smart Search: Ref (11/2026), Media (Le Matin, L'Economiste), Buyer, Tech (Firewall, EDR, SIEM, Audit...)",
+    search_placeholder: "Search tenders by keyword, reference, buyer...",
     btn_search: "Search",
     btn_filters: "Filters",
     txt_filter_by: "Filter by:",
@@ -279,7 +279,7 @@ const I18N = {
     kpi_downloaded_badge: "تحت المراقبة",
 
     // Search & Filters
-    search_placeholder: "بحث ذكي : المرجع، الجريدة، المشتري، التكنولوجيا (جدار ناري، EDR، تدقيق أمني...)",
+    search_placeholder: "البحث في الصفقات (كلمة مفتاحية، مرجع، مشتري)...",
     btn_search: "بحث",
     btn_filters: "مرشحات",
     txt_filter_by: "تصفية حسب :",
@@ -1236,6 +1236,42 @@ function formatDateTime(dtStr) {
   return dtStr;
 }
 
+function formatDateOnly(dtStr) {
+  if (!dtStr) return "—";
+  const parts = dtStr.split(" ")[0].split("-");
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return dtStr;
+}
+
+function formatCleanTitle(title) {
+  if (!title) return '';
+  const str = title.trim();
+  const letters = str.replace(/[^a-zA-ZÀ-ÿ]/g, '');
+  const uppers = str.replace(/[^A-ZÀ-Ý]/g, '');
+  if (letters.length > 5 && (uppers.length / letters.length) > 0.6) {
+    const acronyms = new Set([
+      'SOC', 'SIEM', 'EDR', 'XDR', 'WAF', 'PAM', 'IAM', 'MFA', 'PKI', 'ISO', 
+      'CPS', 'DCE', 'TDR', 'PMMP', 'ANRT', 'CNSS', 'DGI', 'OFPPT', 'ANRF', 
+      'DGSSI', 'NDR', 'API', 'IT', 'SSI', 'ERP', 'MAD', 'TTC', 'DH', 'STEP', 
+      'CL', 'SCR', 'AOO', 'AOI', 'SMI', 'LAN', 'WAN', 'NOC', 'SLA', 'VPN'
+    ]);
+    const words = str.toLowerCase().split(/\s+/);
+    return words.map((w, idx) => {
+      const cleanW = w.replace(/[^a-zA-ZÀ-ÿ0-9]/g, '').toUpperCase();
+      if (acronyms.has(cleanW)) {
+        return w.toUpperCase();
+      }
+      if (idx === 0) return w.charAt(0).toUpperCase() + w.slice(1);
+      const lowers = new Set(['de', 'du', 'des', 'le', 'la', 'les', 'un', 'une', 'd\'', 'l\'', 'à', 'au', 'aux', 'et', 'en', 'pour', 'sur', 'par', 'dans']);
+      if (lowers.has(w)) return w;
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    }).join(' ');
+  }
+  return str;
+}
+
 function cleanSourceName(sourceName, buyerName) {
   if (!sourceName) return "Portail";
   const s = sourceName.trim();
@@ -1347,158 +1383,92 @@ function renderTableRowHtml(t, dayRank) {
   const d = I18N[currentLang] || I18N.fr;
   const isCyber = t.relevance_category === 'CYBERSECURITY';
   const countdown = formatCountdown(t.deadline);
-  const pubDate = formatDateTime(t.publication_date);
-  const deadlineDisplay = formatDateTime(t.deadline);
-  const dceDoc = (t.document_links || []).find(doc => doc.doc_type === 'DCE');
-  const realDceUrl = dceDoc ? dceDoc.url : t.source_url;
+  const deadlineDate = formatDateOnly(t.deadline);
+  const cleanTitle = formatCleanTitle(t.title);
+  const cleanSource = cleanSourceName(t.source_name, t.buyer_name);
+  const isTracked = isTenderTracked(t.id);
 
   // Search matching query for text highlighting
   const searchEl = document.getElementById("filter-search");
   const searchVal = searchEl ? searchEl.value.trim() : "";
 
-  // Identify Official Press / Legal Journal / Direct Consultation
-  const isPress = t.source_name && (
-    t.source_name.toLowerCase().includes('journal') ||
-    t.source_name.toLowerCase().includes('matin') ||
-    t.source_name.toLowerCase().includes('économiste') ||
-    t.source_name.toLowerCase().includes('presse') ||
-    (t.buyer_normalized && (t.buyer_normalized.includes('atlantic') || t.buyer_normalized.includes('laprophan'))) ||
-    (t.buyer_name && (t.buyer_name.includes('Atlantic') || t.buyer_name.includes('Laprophan') || t.buyer_name.includes('SCR')))
-  );
-
-  const cleanSource = cleanSourceName(t.source_name, t.buyer_name);
-
-  // Buyer initials avatar
-  const buyerWords = (t.buyer_name || 'OP').split(' ').filter(w => w.length > 2);
-  let initials = 'OP';
-  if (t.priority_badge && !t.priority_badge.toLowerCase().includes('prioritaire')) {
-    initials = t.priority_badge.substring(0, 3).toUpperCase();
-  } else if (buyerWords.length >= 2) {
-    initials = (buyerWords[0][0] + buyerWords[1][0]).toUpperCase();
-  } else if (buyerWords.length === 1) {
-    initials = buyerWords[0].substring(0, 3).toUpperCase();
-  }
-
-  // Concise Priority Pill (never duplicate buyer name)
-  const priorityPill = t.is_priority_buyer ? `
-    <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200" title="Acheteur Prioritaire Watchlist DPA">
-      <i data-lucide="star" class="w-2.5 h-2.5 text-amber-500 fill-amber-500"></i>
-      <span>${currentLang === 'en' ? 'Priority' : (currentLang === 'ar' ? 'أولوية' : 'Prioritaire')}</span>
+  // Priority indicator
+  const priorityIndicator = t.is_priority_buyer ? `
+    <span class="inline-flex items-center space-x-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400" title="Acheteur Prioritaire DPA">
+      <i data-lucide="star" class="w-2.5 h-2.5 fill-amber-400 text-amber-400"></i>
+      <span>Prioritaire</span>
     </span>
   ` : '';
 
-  const trackedPill = isTenderTracked(t.id) ? `
-    <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300" title="${d.track_active}">
-      <i data-lucide="star" class="w-2.5 h-2.5 fill-amber-500 text-amber-600"></i>
-      <span>${currentLang === 'en' ? 'Tracked' : (currentLang === 'ar' ? 'متابع' : 'Suivi')}</span>
+  // Cyber Tag (Clean & subtle)
+  const cyberTag = isCyber ? `
+    <span class="inline-flex items-center space-x-1 px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 shrink-0">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+      <span>${t.relevance_score || 90}% Cyber</span>
     </span>
-  ` : (t.dce_downloaded ? `
-    <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200" title="DCE téléchargé · Surveillance active">
-      <i data-lucide="bell" class="w-2.5 h-2.5 text-purple-600"></i>
-      <span>${currentLang === 'en' ? 'Spec Alert' : (currentLang === 'ar' ? 'تنبيه' : 'Alerte TDR')}</span>
-    </span>
-  ` : '');
+  ` : '';
 
-  // Category / Relevance Badge embedded inside title cell
-  const categoryBadge = isCyber ? `
-    <span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-      <span>${t.relevance_score}% Cybersécurité · ${escapeHtml(t.sub_category || 'SSI')}</span>
-    </span>
-  ` : `
-    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
-      ${escapeHtml(t.sub_category || t.category || 'Général')}
-    </span>
-  `;
+  // Clean Budget display
+  const budgetDisplay = t.estimated_budget > 0 
+    ? `<span class="font-semibold text-xs text-slate-800 dark:text-slate-200">${formatMAD(t.estimated_budget)}</span>`
+    : `<span class="text-slate-400 dark:text-slate-500 font-normal text-xs">—</span>`;
 
   return `
-    <tr class="hover:bg-slate-50/90 dark:hover:bg-slate-800/60 transition-colors border-b border-slate-100 dark:border-slate-800 group">
-      <!-- 1. Réf & Procédure (14%) -->
-      <td class="py-2.5 px-2.5 align-top">
+    <tr onclick="openTenderModal(${safeArg(t.id)})" class="hover:bg-slate-50/90 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800/80 cursor-pointer group">
+      <!-- 1. Référence & Procédure (13%) -->
+      <td class="py-3 px-3 align-middle">
         <div class="flex items-center space-x-1">
-          <span class="font-mono font-bold text-xs text-emerald-900 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200/80 dark:border-emerald-800/60 truncate" title="${escapeHtml(t.reference)}">${highlightSearchMatch(t.reference, searchVal)}</span>
-          <button onclick="copyToClipboard(${safeArg(t.reference)})" class="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-700 dark:hover:text-white transition shrink-0" title="Copier la référence">
-            <i data-lucide="copy" class="w-3 h-3"></i>
-          </button>
+          <span class="font-mono font-bold text-xs text-slate-900 dark:text-slate-100 tracking-tight">${highlightSearchMatch(t.reference, searchVal)}</span>
+          ${isTracked ? '<i data-lucide="star" class="w-3 h-3 fill-amber-400 text-amber-400 shrink-0"></i>' : ''}
         </div>
-        <div class="flex flex-wrap items-center gap-1 mt-1 text-[10px]">
-          <span class="font-extrabold text-slate-500 uppercase bg-slate-100 dark:bg-slate-800 px-1 py-0.2 rounded border border-slate-200 dark:border-slate-700">${escapeHtml(t.procedure_type || 'AOO')}</span>
-          ${priorityPill}
-          ${trackedPill}
+        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium mt-0.5">
+          <span>${escapeHtml(t.procedure_type || 'AOO')}</span>
         </div>
       </td>
 
-      <!-- 2. Acheteur Public & Source (18%) -->
-      <td class="py-2.5 px-2.5 align-top">
-        <div class="flex items-start space-x-1.5">
-          <div class="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-black text-[9px] text-slate-700 dark:text-slate-300 flex items-center justify-center shrink-0 mt-0.5">
-            ${escapeHtml(initials)}
-          </div>
-          <div class="min-w-0 flex-1">
-            <span class="font-bold text-xs text-slate-900 dark:text-slate-100 block truncate" title="${escapeHtml(t.buyer_name)}">${highlightSearchMatch(t.buyer_name, searchVal)}</span>
-            <div class="mt-0.5">
-              <a href="${escapeHtml(t.source_url)}" target="_blank" onclick="event.stopPropagation()" class="inline-flex items-center space-x-1 text-[9px] font-bold ${isPress ? 'text-amber-900 bg-amber-50 dark:bg-amber-950/50 dark:text-amber-300 border-amber-300 dark:border-amber-800' : 'text-emerald-800 bg-emerald-50 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'} px-1.5 py-0.2 rounded border transition shadow-2xs truncate max-w-full" title="Consulter la source officielle (${escapeHtml(cleanSource)})">
-                <i data-lucide="${isPress ? 'newspaper' : 'globe'}" class="w-2.5 h-2.5 shrink-0"></i>
-                <span class="truncate">${escapeHtml(cleanSource)} ↗</span>
-              </a>
-            </div>
-          </div>
+      <!-- 2. Acheteur Public (20%) -->
+      <td class="py-3 px-3 align-middle">
+        <span class="font-semibold text-xs text-slate-900 dark:text-slate-100 block truncate max-w-[220px]" title="${escapeHtml(t.buyer_name)}">${highlightSearchMatch(t.buyer_name, searchVal)}</span>
+        <div class="flex items-center space-x-2 mt-0.5">
+          ${priorityIndicator}
+          ${cleanSource !== 'Portail' && cleanSource !== 'PMMP' ? `<span class="text-[10px] text-slate-400 truncate max-w-[120px]">${escapeHtml(cleanSource)}</span>` : ''}
         </div>
       </td>
 
-      <!-- 3. Objet du Marché & Détails (36%) -->
-      <td class="py-2.5 px-2.5 align-top">
-        <div onclick="openTenderModal(${safeArg(t.id)})" class="font-semibold text-xs text-slate-900 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer line-clamp-2 leading-snug break-words" title="${escapeHtml(t.title)}">
-          ${highlightSearchMatch(t.title, searchVal)}
+      <!-- 3. Objet du Marché (40%) -->
+      <td class="py-3 px-3 align-middle">
+        <div class="font-medium text-xs sm:text-[13px] text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition leading-snug line-clamp-2 break-words" title="${escapeHtml(t.title)}">
+          ${highlightSearchMatch(cleanTitle, searchVal)}
         </div>
-        <div class="flex flex-wrap items-center gap-1.5 mt-1 text-[10px] text-slate-500 dark:text-slate-400">
-          ${categoryBadge}
-          <span class="text-slate-300 dark:text-slate-600">·</span>
-          <span class="truncate">${d.caution_lbl} <strong class="text-slate-700 dark:text-slate-300 font-semibold">${escapeHtml(t.provisional_guarantee || d.per_cps)}</strong></span>
-          ${t.summary ? `<span class="text-slate-300 dark:text-slate-600">·</span><span class="text-slate-400 dark:text-slate-500 truncate max-w-[150px]" title="${escapeHtml(t.summary)}">${highlightSearchMatch(t.summary, searchVal)}</span>` : ''}
-        </div>
+        ${cyberTag ? `<div class="mt-1">${cyberTag}</div>` : ''}
       </td>
 
-      <!-- 4. Budget Estimé TTC (11%) -->
-      <td class="py-2.5 px-2 align-top">
-        <span class="font-extrabold text-xs text-slate-900 dark:text-slate-100 block break-words">${t.estimated_budget > 0 ? formatMAD(t.estimated_budget) : `<span class="text-slate-400 font-normal">${d.not_specified}</span>`}</span>
-        <span class="text-[9px] text-slate-400 block mt-0.5">${pubDate}</span>
+      <!-- 4. Budget TTC (12%) -->
+      <td class="py-3 px-3 align-middle whitespace-nowrap">
+        ${budgetDisplay}
       </td>
 
-      <!-- 5. Date Limite de Réponse (11%) -->
-      <td class="py-2.5 px-2 align-top">
-        <div class="text-[11px] font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-1">
-          <i data-lucide="clock" class="w-3 h-3 text-amber-500 shrink-0"></i>
-          <span class="truncate">${deadlineDisplay}</span>
-        </div>
-        <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold ${countdown.badgeClass}">
-          ${countdown.text}
+      <!-- 5. Échéance (15%) -->
+      <td class="py-3 px-3 align-middle whitespace-nowrap">
+        <span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-semibold ${countdown.badgeClass}">
+          <i data-lucide="clock" class="w-2.5 h-2.5"></i>
+          <span>${countdown.text}</span>
         </span>
+        <span class="text-[10px] text-slate-400 block mt-0.5 font-mono">${deadlineDate}</span>
       </td>
 
-      <!-- 6. Actions Directes (10%) -->
-      <td class="py-2.5 px-2 text-right align-middle">
-        <div class="flex items-center justify-end space-x-1">
+      <!-- 6. Actions (Actions compactes) -->
+      <td class="py-3 px-3 text-right align-middle whitespace-nowrap" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-end space-x-1.5">
           <!-- Star Toggle -->
-          <button onclick="toggleTrackTender(${safeArg(t.id)}, event)" class="p-1 rounded-md border transition ${isTenderTracked(t.id) ? 'bg-amber-400 text-slate-950 border-amber-500' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-amber-500 border-slate-200 dark:border-slate-700'}" title="${isTenderTracked(t.id) ? d.track_active : d.track_inactive}">
-            <i data-lucide="star" class="w-3.5 h-3.5 ${isTenderTracked(t.id) ? 'fill-slate-950 text-slate-950' : ''}"></i>
+          <button onclick="toggleTrackTender(${safeArg(t.id)}, event)" class="p-1.5 rounded-lg border transition ${isTracked ? 'bg-amber-400 text-slate-950 border-amber-500' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-amber-500 border-slate-200 dark:border-slate-700'}" title="${isTracked ? d.track_active : d.track_inactive}">
+            <i data-lucide="star" class="w-3.5 h-3.5 ${isTracked ? 'fill-slate-950 text-slate-950' : ''}"></i>
           </button>
 
           <!-- Dossier Button -->
-          <button onclick="openSubmissionFolderModal(${safeArg(t.id)})" class="p-1 px-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 text-[10px] font-bold rounded-md flex items-center space-x-1 transition shadow-2xs" title="${d.btn_folder}">
+          <button onclick="openSubmissionFolderModal(${safeArg(t.id)})" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 text-[11px] font-bold rounded-lg flex items-center space-x-1 transition shadow-2xs" title="${d.btn_folder}">
             <i data-lucide="folder" class="w-3 h-3"></i>
-            <span class="hidden sm:inline">${d.btn_folder}</span>
-          </button>
-
-          <!-- DCE Download -->
-          <button onclick="downloadDCE(${safeArg(t.id)}, ${safeArg(t.reference)})" class="p-1 px-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-[10px] font-bold rounded-md flex items-center space-x-1 transition shadow-2xs" title="${d.btn_dce}">
-            <i data-lucide="download" class="w-3 h-3"></i>
-            <span class="hidden sm:inline">DCE</span>
-          </button>
-
-          <!-- Details Modal -->
-          <button onclick="openTenderModal(${safeArg(t.id)})" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md text-slate-500 hover:text-blue-600 border border-slate-200 dark:border-slate-700 transition" title="${d.btn_details}">
-            <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+            <span>${d.btn_folder || 'Dossier'}</span>
           </button>
         </div>
       </td>
@@ -1531,16 +1501,15 @@ function renderTableViewHtml(tenders, groupByDay, sortVal) {
       const dayLabel = isDeadlineGrouping ? formatDeadlineDayLabel(dayKey) : formatDayLabel(dayKey);
       const iconName = isDeadlineGrouping ? "clock" : "calendar";
       const iconColor = isDeadlineGrouping ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400";
-      const badgeBg = isDeadlineGrouping ? "bg-amber-50/90 dark:bg-amber-950/70 text-amber-950 dark:text-amber-200 border-amber-200 dark:border-amber-800/80" : "bg-slate-100/90 dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-700/80";
 
       const itemWord = currentLang === 'en' ? 'tender(s)' : (currentLang === 'ar' ? 'استشارة' : 'consultation(s)');
       bodyHtml += `
-        <tr class="${badgeBg} border-y">
-          <td colspan="6" class="py-2.5 px-3 font-bold text-xs">
+        <tr class="bg-slate-50/60 dark:bg-slate-950/60 border-y border-slate-200/60 dark:border-slate-800">
+          <td colspan="6" class="py-1.5 px-3 font-semibold text-[11px] text-slate-500 dark:text-slate-400">
             <div class="flex items-center space-x-2">
               <i data-lucide="${iconName}" class="w-3.5 h-3.5 ${iconColor}"></i>
-              <span class="tracking-wide">${escapeHtml(dayLabel)}</span>
-              <span class="text-slate-500 dark:text-slate-400 font-medium text-[11px]">(${dayTenders.length} ${itemWord})</span>
+              <span>${escapeHtml(dayLabel)}</span>
+              <span class="text-slate-400 dark:text-slate-500 text-[10px]">(${dayTenders.length} ${itemWord})</span>
             </div>
           </td>
         </tr>
@@ -1560,21 +1529,21 @@ function renderTableViewHtml(tenders, groupByDay, sortVal) {
     <div class="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
       <table class="w-full table-fixed text-left border-collapse">
         <colgroup>
-          <col class="w-[14%]">
-          <col class="w-[18%]">
-          <col class="w-[36%]">
-          <col class="w-[11%]">
-          <col class="w-[11%]">
+          <col class="w-[12%]">
+          <col class="w-[20%]">
+          <col class="w-[40%]">
+          <col class="w-[12%]">
           <col class="w-[10%]">
+          <col class="w-[6%]">
         </colgroup>
         <thead>
-          <tr class="bg-slate-50/90 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-            <th class="py-2.5 px-2.5">${d.th_ref}</th>
-            <th class="py-2.5 px-2.5">${d.th_buyer}</th>
-            <th class="py-2.5 px-2.5">${d.th_object}</th>
-            <th class="py-2.5 px-2">${d.th_budget}</th>
-            <th class="py-2.5 px-2">${d.th_deadline}</th>
-            <th class="py-2.5 px-2 text-right">${d.th_actions}</th>
+          <tr class="bg-slate-50/70 dark:bg-slate-950/70 border-b border-slate-200/80 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <th class="py-3 px-3">${d.th_ref}</th>
+            <th class="py-3 px-3">${d.th_buyer}</th>
+            <th class="py-3 px-3">${d.th_object}</th>
+            <th class="py-3 px-3">${d.th_budget}</th>
+            <th class="py-3 px-3">${d.th_deadline}</th>
+            <th class="py-3 px-3 text-right">Action</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
@@ -1708,7 +1677,7 @@ function renderMobileTouchCardsHtml(tenders, groupByDay, sortVal) {
 
         <!-- Tender Title (Objet) -->
         <div onclick="openTenderModal(${safeArg(t.id)})" class="font-semibold text-xs text-slate-900 dark:text-slate-100 leading-snug break-words active:text-emerald-600 transition cursor-pointer">
-          ${escapeHtml(t.title)}
+          ${escapeHtml(formatCleanTitle(t.title))}
         </div>
 
         <!-- Budget & Caution Info Grid -->
@@ -1950,7 +1919,7 @@ function renderTenderCardHtml(t, dayRank) {
       <!-- Tender Title (Objet) -->
       <div>
         <h3 onclick="openTenderModal(${safeArg(t.id)})" class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer leading-snug">
-          ${highlightSearchMatch(t.title, searchVal)}
+          ${highlightSearchMatch(formatCleanTitle(t.title), searchVal)}
         </h3>
       </div>
 

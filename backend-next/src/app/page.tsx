@@ -87,6 +87,41 @@ export default function OriginalStyleApp() {
     setTimeout(() => setToast(null), 2500);
   };
 
+  const cleanClientName = (name: string): string => {
+    if (!name) return 'Acheteur public';
+    let cleaned = name.trim();
+    if (cleaned.includes('Acheteur public :')) {
+      const parts = cleaned.split('Acheteur public :');
+      cleaned = parts[0].trim() || parts[1].trim();
+    }
+    return cleaned;
+  };
+
+  const formatCleanTitle = (title: string): string => {
+    if (!title) return '';
+    const str = title.trim();
+    const letters = str.replace(/[^a-zA-ZÀ-ÿ]/g, '');
+    const uppers = str.replace(/[^A-ZÀ-Ý]/g, '');
+    if (letters.length > 5 && (uppers.length / letters.length) > 0.6) {
+      const acronyms = new Set([
+        'SOC', 'SIEM', 'EDR', 'XDR', 'WAF', 'PAM', 'IAM', 'MFA', 'PKI', 'ISO',
+        'CPS', 'DCE', 'TDR', 'PMMP', 'ANRT', 'CNSS', 'DGI', 'OFPPT', 'ANRF',
+        'DGSSI', 'NDR', 'API', 'IT', 'SSI', 'ERP', 'MAD', 'TTC', 'DH', 'STEP',
+        'CL', 'SCR', 'AOO', 'AOI', 'SMI', 'LAN', 'WAN', 'NOC', 'SLA', 'VPN'
+      ]);
+      const words = str.toLowerCase().split(/\s+/);
+      return words.map((w, idx) => {
+        const cleanW = w.replace(/[^a-zA-ZÀ-ÿ0-9]/g, '').toUpperCase();
+        if (acronyms.has(cleanW)) return w.toUpperCase();
+        if (idx === 0) return w.charAt(0).toUpperCase() + w.slice(1);
+        const lowers = new Set(['de', 'du', 'des', 'le', 'la', 'les', 'un', 'une', "d'", "l'", 'à', 'au', 'aux', 'et', 'en', 'pour', 'sur', 'par', 'dans']);
+        if (lowers.has(w)) return w;
+        return w.charAt(0).toUpperCase() + w.slice(1);
+      }).join(' ');
+    }
+    return str;
+  };
+
   const copyText = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     showToast(`✓ ${label} copié !`);
@@ -238,12 +273,12 @@ export default function OriginalStyleApp() {
             
             {/* Brand Logo & Name */}
             <div className="flex items-center space-x-3 shrink-0">
-              <div className="h-9 w-9 bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800/60 rounded-xl flex items-center justify-center p-1 shadow-2xs">
-                <Shield className="w-5 h-5 text-orange-500" />
+              <div className="h-9 w-9 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl flex items-center justify-center p-1 shadow-2xs">
+                <Shield className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div className="flex items-center space-x-2">
                 <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 dark:text-white">
-                  CyberRFP <span className="text-orange-500">Maroc</span>
+                  DPA <span className="text-emerald-500">CYBER-RFP</span>
                 </span>
                 <span className="hidden md:inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -335,30 +370,30 @@ export default function OriginalStyleApp() {
         {/* STATS OVERVIEW CARDS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Marchés PMMP Indexés</div>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{tenders.length}</div>
+            <div className="text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">Marchés Indexés</div>
+            <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">{tenders.length}</div>
             <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1 font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              Portail Marocain des Marchés Publics
+              Flux PMMP direct
             </div>
           </div>
 
           <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Cybersécurité & SSI</div>
-            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{cyberCount}</div>
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">SOC, SIEM, Audit, Pentest, EDR</div>
+            <div className="text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">Cybersécurité</div>
+            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{cyberCount}</div>
+            <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">SOC, SIEM, EDR, Audit</div>
           </div>
 
           <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Acheteurs Stratégiques</div>
-            <div className="text-2xl font-bold text-amber-500 mt-1">{priorityCount}</div>
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Ministères, Banques, Régies</div>
+            <div className="text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">Acheteurs Cibles</div>
+            <div className="text-2xl font-black text-amber-500 mt-1">{priorityCount}</div>
+            <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Ministères & Banques</div>
           </div>
 
           <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Échéances &lt; 7 Jours</div>
-            <div className="text-2xl font-bold text-rose-500 mt-1">{urgentCount}</div>
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Remise des plis imminente</div>
+            <div className="text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">Échéances &lt; 7J</div>
+            <div className="text-2xl font-black text-rose-500 mt-1">{urgentCount}</div>
+            <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Remise imminente</div>
           </div>
         </div>
 
@@ -443,7 +478,7 @@ export default function OriginalStyleApp() {
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-900 dark:text-white truncate">
                         <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span className="truncate">{tender.clientName}</span>
+                        <span className="truncate" title={cleanClientName(tender.clientName)}>{cleanClientName(tender.clientName)}</span>
                       </div>
                       <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full shrink-0 ${badgeStyle}`}>
                         {badgeText}
@@ -464,8 +499,8 @@ export default function OriginalStyleApp() {
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 line-clamp-3 leading-snug mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                      {tender.title}
+                    <h3 className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 line-clamp-2 leading-snug mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                      {formatCleanTitle(tender.title)}
                     </h3>
 
                     {/* Matched Keywords */}
@@ -559,10 +594,10 @@ export default function OriginalStyleApp() {
             <div className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                  Détail Appel d'Offres PMMP
+                  DPA-CYBER-RFP · Consultation PMMP
                 </span>
                 <h2 className="text-base font-bold text-slate-900 dark:text-white mt-1">
-                  {selectedTender.clientName}
+                  {cleanClientName(selectedTender.clientName)}
                 </h2>
               </div>
               <button
@@ -577,7 +612,7 @@ export default function OriginalStyleApp() {
             <div>
               <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Objet du Marché :</div>
               <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
-                {selectedTender.title}
+                {formatCleanTitle(selectedTender.title)}
               </p>
             </div>
 
@@ -664,7 +699,7 @@ export default function OriginalStyleApp() {
 
       {/* FOOTER */}
       <footer className="border-t border-slate-200 dark:border-slate-800 py-4 text-xs text-slate-500 text-center bg-white dark:bg-slate-900">
-        CyberRFP Maroc — Veille Spécialisée Appels d'Offres Publics PMMP
+        DPA-CYBER-RFP — Veille Spécialisée Appels d'Offres Publics Cybersécurité & Marchés Publics
       </footer>
     </div>
   );

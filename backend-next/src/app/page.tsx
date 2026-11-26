@@ -35,6 +35,7 @@ interface TenderItem {
   publicationDate: string | null;
   deadline: string | null;
   directUrl: string;
+  dceUrl?: string;
   status: string;
   isHighPriority: boolean;
   matchedKeywords: string[];
@@ -482,16 +483,34 @@ export default function OriginalStyleApp() {
 
                   {/* Card Actions Footer */}
                   <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
-                    <a
-                      href={tender.directUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition shadow-2xs"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>DCE Direct</span>
-                    </a>
+                    <div className="flex items-center gap-1.5">
+                      {/* Direct Portal Reading */}
+                      <a
+                        href={tender.directUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-[11px] transition"
+                        title="Consulter et lire les détails directement sur le portail PMMP"
+                      >
+                        <FileText className="w-3 h-3 text-slate-500 dark:text-slate-400" />
+                        <span>Lire PMMP</span>
+                        <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                      </a>
+
+                      {/* Direct Official DCE Download */}
+                      <a
+                        href={tender.dceUrl || `/api/tenders/${tender.id}/download-dce`}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] transition shadow-2xs"
+                        title="Télécharger directement le dossier DCE officiel sur PMMP"
+                      >
+                        <Download className="w-3 h-3" />
+                        <span>DCE</span>
+                      </a>
+                    </div>
 
                     <div className="flex items-center gap-1">
                       <button
@@ -608,21 +627,32 @@ export default function OriginalStyleApp() {
             </div>
 
             {/* Actions Bar */}
-            <div className="flex items-center gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
               <a
                 href={selectedTender.directUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 text-xs font-bold transition border border-slate-200 dark:border-slate-700"
+              >
+                <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Lire la Consultation sur PMMP</span>
+                <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+              </a>
+
+              <a
+                href={selectedTender.dceUrl || `/api/tenders/${selectedTender.id}/download-dce`}
                 target="_blank"
                 rel="noreferrer"
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs"
               >
                 <Download className="w-4 h-4" />
-                <span>Télécharger le Dossier DCE sur PMMP</span>
+                <span>Télécharger le DCE Officiel</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
 
               <button
                 onClick={() => openWhatsApp(selectedTender)}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 transition"
+                className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 transition"
               >
                 <Share2 className="w-4 h-4" />
                 <span>WhatsApp</span>

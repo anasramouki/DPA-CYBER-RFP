@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     .where(whereClause);
 
   // Get paginated items with source info
-  const items = await db
+  const rawItems = await db
     .select({
       id: tendersTable.id,
       externalRef: tendersTable.externalRef,
@@ -76,6 +76,7 @@ export async function GET(request: NextRequest) {
       isHighPriority: tendersTable.isHighPriority,
       matchedKeywords: tendersTable.matchedKeywords,
       relevanceScore: tendersTable.relevanceScore,
+      rawMetadata: tendersTable.rawMetadata,
       createdAt: tendersTable.createdAt,
       sourceSlug: sourcesTable.slug,
       sourceName: sourcesTable.name,
@@ -86,6 +87,24 @@ export async function GET(request: NextRequest) {
     .orderBy(desc(tendersTable.createdAt))
     .limit(limit)
     .offset(offset);
+
+  const items = rawItems.map((item) => {
+    let dceUrl = (item.rawMetadata as any)?.dceUrl;
+    if (!dceUrl && item.directUrl) {
+      const refMatch = item.directUrl.match(/refConsultation=([0-9]+)/);
+      const orgMatch = item.directUrl.match(/orgAcronyme=([A-Za-z0-9_\-]+)/);
+      if (refMatch && orgMatch) {
+        dceUrl = `https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=${refMatch[1]}&orgAcronyme=${orgMatch[2]}`;
+      } else {
+        dceUrl = item.directUrl;
+      }
+    }
+
+    return {
+      ...item,
+      dceUrl: dceUrl || item.directUrl,
+    };
+  });
 
   const total = Number(totalCount);
   const totalPages = Math.ceil(total / limit);

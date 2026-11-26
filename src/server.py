@@ -58,13 +58,9 @@ classifier = ClassifierEngine()
 dce_downloader = DCEDownloader()
 alerts_dispatcher = AlertsDispatcher(db.get_alerts_config())
 
-# Connectors registry
+# Connectors registry (PMMP only as requested)
 connectors: Dict[str, Any] = {
     "pmmp": PMMPConnector(fetch_details=True),
-    "albaridbank": AlBaridBankConnector(fetch_details=True),
-    "ofppt": OFPPTConnector(),
-    "sorec": SORECConnector(),
-    "press_journal": PressJournalConnector(),
 }
 
 # Dynamically add saved generic connectors

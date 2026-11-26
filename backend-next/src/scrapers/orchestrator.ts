@@ -16,13 +16,8 @@ export class ScrapingOrchestrator {
   private scrapers: Map<string, IScraper> = new Map();
 
   constructor() {
+    // Only PMMP as requested
     this.register(new PMMPScraper());
-    this.register(new AlBaridBankScraper());
-    this.register(new OFPPTScraper());
-    this.register(new SORECScraper());
-    this.register(new AtlanticREScraper());
-    this.register(new ADMScraper());
-    this.register(new LaprophanScraper());
   }
 
   register(scraper: IScraper) {

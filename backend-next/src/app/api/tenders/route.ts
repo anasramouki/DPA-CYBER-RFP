@@ -38,16 +38,15 @@ export async function GET(request: NextRequest) {
     conditions.push(eq(tendersTable.isHighPriority, true));
   }
 
-  if (sourceSlug) {
-    const [matchedSource] = await db
-      .select({ id: sourcesTable.id })
-      .from(sourcesTable)
-      .where(eq(sourcesTable.slug, sourceSlug))
-      .limit(1);
+  // Strictly filter to PMMP source only (ignoring press and third-party sources)
+  const [matchedSource] = await db
+    .select({ id: sourcesTable.id })
+    .from(sourcesTable)
+    .where(eq(sourcesTable.slug, 'pmmp'))
+    .limit(1);
 
-    if (matchedSource) {
-      conditions.push(eq(tendersTable.sourceId, matchedSource.id));
-    }
+  if (matchedSource) {
+    conditions.push(eq(tendersTable.sourceId, matchedSource.id));
   }
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

@@ -1,68 +1,41 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --bg-base: #0B0D13;
-    --bg-surface: #12151F;
-    --bg-elevated: #181C2A;
-    --border-subtle: rgba(255, 255, 255, 0.08);
-    --border-medium: rgba(255, 255, 255, 0.14);
-    --border-accent: rgba(16, 185, 129, 0.4);
-    
-    --text-primary: #F8FAFC;
-    --text-secondary: #94A3B8;
-    --text-muted: #64748B;
-    
-    --brand-emerald: #10B981;
-    --brand-emerald-soft: rgba(16, 185, 129, 0.12);
-  }
+:root {
+  --bg-app: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-surface: #f1f5f9;
+  --border-subtle: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+.dark {
+  --bg-app: #080c15;
+  --bg-card: #0f172a;
+  --bg-surface: #1e293b;
+  --border-subtle: #1e293b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
 }
 
 body {
-  background-color: #090B10;
-  color: #F8FAFC;
-  font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", "Segoe UI", Roboto, sans-serif;
-  min-height: 100vh;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Inter", sans-serif;
+  transition: background-color 0.15s ease, color 0.15s ease;
   -webkit-font-smoothing: antialiased;
-  letter-spacing: -0.011em;
 }
 
-/* Subtle, clean scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+.card-modern {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Crisp card styling */
-.clean-panel {
-  background: #11141E;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 12px;
-  transition: all 0.15s ease;
-}
-
-.clean-panel:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-.clean-card-selected {
-  background: #161A27 !important;
-  border-color: #10B981 !important;
-  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.5);
+.card-modern:hover {
+  border-color: #10b981;
+  box-shadow: 0 12px 28px -6px rgba(16, 185, 129, 0.08), 0 8px 12px -4px rgba(0, 0, 0, 0.03);
+  transform: translateY(-2px);
 }

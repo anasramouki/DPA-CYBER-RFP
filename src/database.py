@@ -574,6 +574,10 @@ class Database:
         if priority_only:
             query += " AND is_priority_buyer = 1"
 
+        # Default strictly to PMMP tenders only (exclude press completely)
+        if not source:
+            source = "pmmp"
+
         if source:
             source_lower = source.lower().strip()
             if "presse" in source_lower or "journal" in source_lower:

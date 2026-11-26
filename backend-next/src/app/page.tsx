@@ -3,22 +3,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Shield,
+  Layers,
+  Star,
+  Kanban,
+  Settings,
   Search,
   RefreshCw,
   Clock,
   ExternalLink,
-  Building2,
+  Download,
   Share2,
   Copy,
-  ChevronRight,
-  Download,
+  Moon,
+  Sun,
+  Building2,
   Calendar,
-  Sparkles,
-  Bookmark,
   Check,
-  Layers,
-  ArrowUpRight,
-  Filter,
+  X,
+  FileText,
+  AlertCircle,
+  Bookmark,
 } from 'lucide-react';
 
 interface TenderItem {
@@ -40,96 +44,101 @@ interface TenderItem {
   createdAt: string;
 }
 
-interface SourceStats {
-  id: string;
-  slug: string;
-  name: string;
-  healthStatus: string;
-  itemsIndexed: number;
-  lastRunAt: string | null;
-}
-
-export default function CleanCyberRFPDashboard() {
+export default function OriginalStyleApp() {
   const [tenders, setTenders] = useState<TenderItem[]>([]);
-  const [sources, setSources] = useState<SourceStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'high' | 'urgent' | 'soc' | 'audit' | 'infra'>('all');
-  const [selectedSource, setSelectedSource] = useState<string>('all');
-  const [selectedTenderId, setSelectedTenderId] = useState<string | null>(null);
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'cyber' | 'priority' | 'pipeline'>('all');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [selectedTender, setSelectedTender] = useState<TenderItem | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
+
+  // Initialize theme
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('cyberrfp_theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDarkMode((prev) => {
+      const next = !prev;
+      if (next) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('cyberrfp_theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('cyberrfp_theme', 'light');
+      }
+      return next;
+    });
+  };
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
   };
 
-  const copyText = (text: string, key: string, label: string) => {
+  const copyText = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    setCopiedKey(key);
-    showToast(`${label} copié !`);
-    setTimeout(() => setCopiedKey(null), 2000);
+    showToast(`✓ ${label} copié !`);
   };
 
-  const toggleSave = (id: string, e: React.MouseEvent) => {
+  const toggleTrack = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSavedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
-        showToast('Retiré de votre sélection');
+        showToast('Retiré du pipeline commercial');
       } else {
         next.add(id);
-        showToast('Ajouté à vos opportunités suivies');
+        showToast('★ Ajouté au pipeline commercial !');
       }
       return next;
     });
   };
 
-  const loadData = async () => {
+  const fetchPMMPTenders = async () => {
     try {
       setLoading(true);
-      const [tendersRes, sourcesRes] = await Promise.all([
-        fetch('/api/tenders?limit=150'),
-        fetch('/api/sources'),
-      ]);
-
-      if (tendersRes.ok) {
-        const data = await tendersRes.json();
-        const items: TenderItem[] = data.items || [];
+      // Explicitly request PMMP source only
+      const res = await fetch('/api/tenders?source=pmmp&limit=200');
+      if (res.ok) {
+        const data = await res.json();
+        // Strictly filter to PMMP only
+        const items: TenderItem[] = (data.items || []).filter(
+          (t: TenderItem) => !t.sourceSlug || t.sourceSlug.toLowerCase() === 'pmmp' || t.sourceName?.toUpperCase().includes('PMMP')
+        );
         setTenders(items);
-        if (items.length > 0 && !selectedTenderId) {
-          setSelectedTenderId(items[0].id);
-        }
-      }
-      if (sourcesRes.ok) {
-        const data = await sourcesRes.json();
-        setSources(data.sources || []);
       }
     } catch (err) {
-      console.error('Erreur de chargement:', err);
+      console.error('Erreur chargement PMMP:', err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    fetchPMMPTenders();
   }, []);
 
-  const runScan = async () => {
+  const triggerSync = async () => {
     setRefreshing(true);
-    showToast('Actualisation des 7 portails en cours...');
+    showToast('Interrogation directe du portail PMMP en cours...');
     try {
-      const res = await fetch('/api/cron/scrape');
-      const data = await res.json();
-      showToast(`${data.tendersNew || 0} nouveaux marchés indexés`);
-      await loadData();
+      await fetch('/api/cron/scrape');
+      await fetchPMMPTenders();
+      showToast('✓ Portail PMMP synchronisé !');
     } catch {
-      showToast('Erreur lors du rafraîchissement');
+      showToast('Erreur lors de la synchronisation PMMP');
     } finally {
       setRefreshing(false);
     }
@@ -143,33 +152,26 @@ export default function CleanCyberRFPDashboard() {
     return Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   };
 
-  // Filter logic
+  // Filtered tenders based on active navigation tab & search
   const filteredTenders = useMemo(() => {
     return tenders.filter((t) => {
-      if (selectedSource !== 'all' && t.sourceSlug !== selectedSource) return false;
-      if (activeFilter === 'high' && !t.isHighPriority) return false;
-
-      const days = getDaysDiff(t.deadline);
-      if (activeFilter === 'urgent') {
-        if (days === null || days > 7 || days < 0) return false;
-      }
+      if (activeTab === 'priority' && !t.isHighPriority) return false;
+      if (activeTab === 'pipeline' && !savedIds.has(t.id)) return false;
 
       const allWords = `${t.title} ${t.clientName} ${t.externalRef || ''} ${(t.matchedKeywords || []).join(' ')}`.toLowerCase();
 
-      if (activeFilter === 'soc') {
-        if (!allWords.includes('soc') && !allWords.includes('siem') && !allWords.includes('edr') && !allWords.includes('surveillance')) {
-          return false;
-        }
-      }
-      if (activeFilter === 'audit') {
-        if (!allWords.includes('audit') && !allWords.includes('pentest') && !allWords.includes('intrusion') && !allWords.includes('conformit')) {
-          return false;
-        }
-      }
-      if (activeFilter === 'infra') {
-        if (!allWords.includes('reseau') && !allWords.includes('réseau') && !allWords.includes('firewall') && !allWords.includes('datacenter')) {
-          return false;
-        }
+      if (activeTab === 'cyber') {
+        const isCyber =
+          allWords.includes('cyber') ||
+          allWords.includes('sécurité') ||
+          allWords.includes('securite') ||
+          allWords.includes('soc') ||
+          allWords.includes('siem') ||
+          allWords.includes('edr') ||
+          allWords.includes('audit') ||
+          allWords.includes('pentest') ||
+          allWords.includes('firewall');
+        if (!isCyber) return false;
       }
 
       if (search.trim()) {
@@ -179,13 +181,25 @@ export default function CleanCyberRFPDashboard() {
 
       return true;
     });
-  }, [tenders, selectedSource, activeFilter, search]);
+  }, [tenders, activeTab, savedIds, search]);
 
-  const selectedTender = useMemo(() => {
-    return tenders.find((t) => t.id === selectedTenderId) || filteredTenders[0] || null;
-  }, [tenders, selectedTenderId, filteredTenders]);
+  const cyberCount = useMemo(() => {
+    return tenders.filter((t) => {
+      const w = `${t.title} ${t.clientName} ${(t.matchedKeywords || []).join(' ')}`.toLowerCase();
+      return (
+        w.includes('cyber') ||
+        w.includes('sécurité') ||
+        w.includes('securite') ||
+        w.includes('soc') ||
+        w.includes('siem') ||
+        w.includes('edr') ||
+        w.includes('audit') ||
+        w.includes('firewall')
+      );
+    }).length;
+  }, [tenders]);
 
-  const highPriorityCount = useMemo(() => tenders.filter((t) => t.isHighPriority).length, [tenders]);
+  const priorityCount = useMemo(() => tenders.filter((t) => t.isHighPriority).length, [tenders]);
   const urgentCount = useMemo(() => {
     return tenders.filter((t) => {
       const d = getDaysDiff(t.deadline);
@@ -193,395 +207,434 @@ export default function CleanCyberRFPDashboard() {
     }).length;
   }, [tenders]);
 
-  const generateWhatsAppMessage = (tender: TenderItem) => {
+  const openWhatsApp = (tender: TenderItem) => {
     const days = getDaysDiff(tender.deadline);
     const deadlineStr = tender.deadline ? new Date(tender.deadline).toLocaleDateString('fr-FR') : 'Non précisée';
-    const daysStr = days !== null ? (days >= 0 ? `(J-${days})` : '(Expiré)') : '';
-    return `*Opportunité Cyber & IT Maroc*\n\n` +
-      `*Organisme :* ${tender.clientName}\n` +
-      `*Objet :* ${tender.title}\n` +
-      `*Réf :* ${tender.externalRef || 'N/A'}\n` +
-      `*Date limite :* ${deadlineStr} ${daysStr}\n` +
-      `*Lien DCE :* ${tender.directUrl}\n\n` +
+    const text = `🚨 *Appel d'Offres PMMP Maroc*\n` +
+      `🏛️ *Acheteur :* ${tender.clientName}\n` +
+      `📌 *Réf :* ${tender.externalRef || 'N/A'}\n` +
+      `📑 *Objet :* ${tender.title}\n` +
+      `⏳ *Date limite :* ${deadlineStr} ${days !== null ? `(J-${days})` : ''}\n` +
+      `🔗 *Lien DCE :* ${tender.directUrl}\n\n` +
       `_Veille CyberRFP Maroc_`;
-  };
-
-  const openWhatsApp = (tender: TenderItem) => {
-    const text = encodeURIComponent(generateWhatsAppMessage(tender));
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0C12] text-slate-100 flex flex-col font-sans antialiased">
-      {/* Toast Feedback */}
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#080c15] text-slate-800 dark:text-slate-100 font-sans transition-colors">
+      {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-[#141824] text-slate-100 px-4 py-2.5 rounded-lg border border-slate-700/80 shadow-xl text-xs font-medium">
-          <Check className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold border border-slate-700 animate-fade-in">
+          <Check className="w-4 h-4 text-emerald-400" />
           <span>{toast}</span>
         </div>
       )}
 
-      {/* MINIMALIST HEADER */}
-      <header className="border-b border-white/[0.08] bg-[#0E111A]/80 backdrop-blur-md sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
-          
-          {/* Brand */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-              <Shield className="w-4 h-4" />
+      {/* TOP NAVIGATION BAR (ORIGINAL STYLE) */}
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 border-b border-slate-200/90 dark:border-slate-800 text-slate-900 dark:text-white shadow-xs backdrop-blur-md transition-colors">
+        <div className="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 gap-3">
+            
+            {/* Brand Logo & Name */}
+            <div className="flex items-center space-x-3 shrink-0">
+              <div className="h-9 w-9 bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800/60 rounded-xl flex items-center justify-center p-1 shadow-2xs">
+                <Shield className="w-5 h-5 text-orange-500" />
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 dark:text-white">
+                  CyberRFP <span className="text-orange-500">Maroc</span>
+                </span>
+                <span className="hidden md:inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>PMMP DIRECT</span>
+                </span>
+              </div>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="font-semibold text-sm tracking-tight text-white">CyberRFP</span>
-              <span className="text-xs text-slate-400 font-medium">Maroc</span>
+
+            {/* Center Navigation Tabs */}
+            <nav className="hidden lg:flex items-center space-x-1 bg-slate-100/90 dark:bg-slate-800/90 p-1 rounded-xl text-xs font-semibold border border-slate-200/60 dark:border-slate-700/60">
+              <button
+                onClick={() => setActiveTab('all')}
+                className={`px-3 py-1.5 rounded-lg flex items-center space-x-1.5 transition ${
+                  activeTab === 'all'
+                    ? 'text-white bg-slate-900 dark:bg-slate-700 shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5 text-orange-400" />
+                <span>Toutes les Offres ({tenders.length})</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('cyber')}
+                className={`px-3 py-1.5 rounded-lg flex items-center space-x-1.5 transition ${
+                  activeTab === 'cyber'
+                    ? 'text-white bg-slate-900 dark:bg-slate-700 shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <Shield className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Cybersécurité & SSI ({cyberCount})</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('priority')}
+                className={`px-3 py-1.5 rounded-lg flex items-center space-x-1.5 transition ${
+                  activeTab === 'priority'
+                    ? 'text-white bg-slate-900 dark:bg-slate-700 shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <Star className="w-3.5 h-3.5 text-amber-500" />
+                <span>Acheteurs Prioritaires ({priorityCount})</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('pipeline')}
+                className={`px-3 py-1.5 rounded-lg flex items-center space-x-1.5 transition ${
+                  activeTab === 'pipeline'
+                    ? 'text-white bg-slate-900 dark:bg-slate-700 shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <Kanban className="w-3.5 h-3.5 text-blue-500" />
+                <span>Pipeline Commercial ({savedIds.size})</span>
+              </button>
+            </nav>
+
+            {/* Right Side: Quick Actions */}
+            <div className="flex items-center space-x-2 shrink-0">
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                title="Basculer Mode Clair / Sombre"
+              >
+                {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
+              </button>
+
+              {/* Sync Button */}
+              <button
+                onClick={triggerSync}
+                disabled={refreshing}
+                className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
+                title="Interroger le portail PMMP en temps réel"
+              >
+                <RefreshCw className={`w-4 h-4 text-emerald-600 ${refreshing ? 'animate-spin' : ''}`} />
+              </button>
             </div>
-            <div className="hidden sm:flex items-center gap-1.5 ml-3 pl-3 border-l border-white/[0.08] text-xs text-slate-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              <span>7 portails surveillés</span>
+
+          </div>
+        </div>
+      </header>
+
+      {/* MAIN CONTENT AREA */}
+      <main className="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col gap-6">
+        
+        {/* STATS OVERVIEW CARDS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Marchés PMMP Indexés</div>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{tenders.length}</div>
+            <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              Portail Marocain des Marchés Publics
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="flex-1 max-w-md relative hidden md:block">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Cybersécurité & SSI</div>
+            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{cyberCount}</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">SOC, SIEM, Audit, Pentest, EDR</div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Acheteurs Stratégiques</div>
+            <div className="text-2xl font-bold text-amber-500 mt-1">{priorityCount}</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Ministères, Banques, Régies</div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Échéances &lt; 7 Jours</div>
+            <div className="text-2xl font-bold text-rose-500 mt-1">{urgentCount}</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Remise des plis imminente</div>
+          </div>
+        </div>
+
+        {/* SEARCH & FILTERS BAR */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher par organisme, mot-clé, référence..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-white/[0.04] border border-white/[0.08] rounded-md text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 transition-colors"
+              placeholder="Rechercher par organisme, mot-clé, référence PMMP..."
+              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 transition-colors"
             />
           </div>
 
-          {/* Action */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={runScan}
-              disabled={refreshing}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium text-slate-200 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] transition-colors cursor-pointer disabled:opacity-50"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-emerald-400' : ''}`} />
-              <span className="hidden sm:inline">{refreshing ? 'Actualisation...' : 'Actualiser'}</span>
-            </button>
-          </div>
-
-        </div>
-      </header>
-
-      {/* MAIN CONTAINER */}
-      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col gap-6">
-        
-        {/* SUBTLE KPI OVERVIEW */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3.5 rounded-lg bg-[#11141E] border border-white/[0.06]">
-            <div className="text-[11px] text-slate-400 font-medium">Marchés en cours</div>
-            <div className="text-xl font-semibold text-white mt-1">{tenders.length}</div>
-          </div>
-          <div className="p-3.5 rounded-lg bg-[#11141E] border border-white/[0.06]">
-            <div className="text-[11px] text-slate-400 font-medium">Haute priorité</div>
-            <div className="text-xl font-semibold text-emerald-400 mt-1">{highPriorityCount}</div>
-          </div>
-          <div className="p-3.5 rounded-lg bg-[#11141E] border border-white/[0.06]">
-            <div className="text-[11px] text-slate-400 font-medium">Échéances &lt; 7 jours</div>
-            <div className="text-xl font-semibold text-amber-400 mt-1">{urgentCount}</div>
-          </div>
-          <div className="p-3.5 rounded-lg bg-[#11141E] border border-white/[0.06]">
-            <div className="text-[11px] text-slate-400 font-medium">Portails actifs</div>
-            <div className="text-xl font-semibold text-slate-300 mt-1">7 / 7</div>
-          </div>
-        </div>
-
-        {/* CLEAN FILTER STRIP */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-1 border-b border-white/[0.06]">
-          {/* Tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none text-xs">
+          {/* Quick tab chips for mobile/tablets */}
+          <div className="flex lg:hidden items-center gap-1.5 overflow-x-auto pb-1 text-xs">
             {[
-              { id: 'all', label: `Tous (${tenders.length})` },
-              { id: 'high', label: `Prioritaires (${highPriorityCount})` },
-              { id: 'urgent', label: `Échéances proches (${urgentCount})` },
-              { id: 'soc', label: 'SOC & SIEM' },
-              { id: 'audit', label: 'Audit & Sécurité' },
-              { id: 'infra', label: 'Réseau & Datacenter' },
-            ].map((tab) => {
-              const active = activeFilter === tab.id;
+              { id: 'all', label: 'Toutes' },
+              { id: 'cyber', label: 'Cyber' },
+              { id: 'priority', label: 'Prioritaires' },
+              { id: 'pipeline', label: 'Pipeline' },
+            ].map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id as any)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap ${
+                  activeTab === t.id
+                    ? 'bg-slate-900 dark:bg-slate-700 text-white'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* CARD GRID (ORIGINAL card-modern STYLE) */}
+        {loading ? (
+          <div className="py-24 text-center text-slate-400 text-xs">
+            <RefreshCw className="w-6 h-6 mx-auto mb-2 animate-spin text-emerald-500" />
+            Chargement des appels d'offres PMMP...
+          </div>
+        ) : filteredTenders.length === 0 ? (
+          <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-sm text-slate-500">
+            Aucun appel d'offres PMMP ne correspond à vos filtres.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredTenders.map((tender) => {
+              const days = getDaysDiff(tender.deadline);
+              const isSaved = savedIds.has(tender.id);
+
+              let badgeStyle = 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
+              let badgeText = 'Date non précisée';
+              if (days !== null) {
+                if (days < 0) {
+                  badgeStyle = 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60';
+                  badgeText = 'Expiré';
+                } else if (days <= 5) {
+                  badgeStyle = 'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60 font-bold';
+                  badgeText = `J-${days} (Urgent)`;
+                } else if (days <= 12) {
+                  badgeStyle = 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 font-semibold';
+                  badgeText = `J-${days}`;
+                } else {
+                  badgeStyle = 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60';
+                  badgeText = `J-${days}`;
+                }
+              }
+
               return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveFilter(tab.id as any)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap cursor-pointer ${
-                    active
-                      ? 'bg-white/10 text-white font-semibold'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.03]'
-                  }`}
+                <div
+                  key={tender.id}
+                  onClick={() => setSelectedTender(tender)}
+                  className="card-modern p-5 flex flex-col justify-between cursor-pointer relative group"
                 >
-                  {tab.label}
-                </button>
+                  <div>
+                    {/* Header: Buyer Name & Reference */}
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-900 dark:text-white truncate">
+                        <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate">{tender.clientName}</span>
+                      </div>
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full shrink-0 ${badgeStyle}`}>
+                        {badgeText}
+                      </span>
+                    </div>
+
+                    {/* Reference & Source Badge */}
+                    <div className="flex items-center gap-2 mb-2.5 text-[11px] text-slate-500 font-mono">
+                      <span>Réf: {tender.externalRef || 'En cours'}</span>
+                      <span>•</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">PMMP</span>
+                      {tender.isHighPriority && (
+                        <>
+                          <span>•</span>
+                          <span className="text-amber-500 font-semibold">★ Prioritaire</span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 line-clamp-3 leading-snug mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                      {tender.title}
+                    </h3>
+
+                    {/* Matched Keywords */}
+                    <div className="flex flex-wrap gap-1 mb-4">
+                      {tender.matchedKeywords?.slice(0, 3).map((kw, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60"
+                        >
+                          {kw}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Card Actions Footer */}
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
+                    <a
+                      href={tender.directUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition shadow-2xs"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>DCE Direct</span>
+                    </a>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openWhatsApp(tender);
+                        }}
+                        className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition"
+                        title="Partager sur WhatsApp"
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        onClick={(e) => toggleTrack(tender.id, e)}
+                        className={`p-1.5 rounded-lg transition ${
+                          isSaved
+                            ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                            : 'text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                        title={isSaved ? 'Suivi dans le pipeline' : 'Ajouter au pipeline'}
+                      >
+                        <Bookmark className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </div>
+        )}
 
-          {/* Source Select */}
-          <div className="shrink-0">
-            <select
-              value={selectedSource}
-              onChange={(e) => setSelectedSource(e.target.value)}
-              className="bg-[#11141E] border border-white/[0.08] rounded-md px-2.5 py-1 text-xs text-slate-300 focus:outline-none focus:border-slate-500"
-            >
-              <option value="all">Toutes les sources (7)</option>
-              <option value="pmmp">Portail Marchés Publics (PMMP)</option>
-              <option value="albaridbank">Al Barid Bank</option>
-              <option value="ofppt">OFPPT</option>
-              <option value="sorec">SOREC</option>
-              <option value="adm">Autoroutes du Maroc (ADM)</option>
-              <option value="atlantic-re">Atlantic Re</option>
-              <option value="laprophan">Laprophan</option>
-            </select>
-          </div>
-        </div>
+      </main>
 
-        {/* SPLIT VIEW: FEED + DOSSIER */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 items-start">
-          
-          {/* FEED (LEFT) */}
-          <div className="lg:col-span-5 flex flex-col gap-2.5">
-            <div className="text-xs text-slate-400 font-medium px-1">
-              {filteredTenders.length} opportunité{filteredTenders.length > 1 ? 's' : ''} trouvée{filteredTenders.length > 1 ? 's' : ''}
+      {/* TENDER DETAIL MODAL (ORIGINAL STYLE) */}
+      {selectedTender && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+          onClick={() => setSelectedTender(null)}
+        >
+          <div
+            className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                  Détail Appel d'Offres PMMP
+                </span>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white mt-1">
+                  {selectedTender.clientName}
+                </h2>
+              </div>
+              <button
+                onClick={() => setSelectedTender(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            {loading ? (
-              <div className="py-20 text-center text-slate-500 text-xs">
-                <RefreshCw className="w-5 h-5 mx-auto mb-2 animate-spin text-slate-400" />
-                Chargement des marchés...
-              </div>
-            ) : filteredTenders.length === 0 ? (
-              <div className="p-8 text-center bg-[#11141E] rounded-lg border border-white/[0.06] text-xs text-slate-400">
-                Aucun marché ne correspond à ces critères.
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
-                {filteredTenders.map((item) => {
-                  const isSelected = selectedTender?.id === item.id;
-                  const days = getDaysDiff(item.deadline);
-                  const isSaved = savedIds.has(item.id);
+            {/* Object */}
+            <div>
+              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Objet du Marché :</div>
+              <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
+                {selectedTender.title}
+              </p>
+            </div>
 
-                  let deadlineText = 'Date non précisée';
-                  let deadlineColor = 'text-slate-400';
-                  if (days !== null) {
-                    if (days < 0) {
-                      deadlineText = 'Expiré';
-                      deadlineColor = 'text-slate-500';
-                    } else if (days === 0) {
-                      deadlineText = "Aujourd'hui";
-                      deadlineColor = 'text-rose-400 font-medium';
-                    } else if (days <= 5) {
-                      deadlineText = `J-${days}`;
-                      deadlineColor = 'text-rose-400 font-medium';
-                    } else if (days <= 12) {
-                      deadlineText = `J-${days}`;
-                      deadlineColor = 'text-amber-400';
-                    } else {
-                      deadlineText = `J-${days}`;
-                      deadlineColor = 'text-slate-400';
-                    }
-                  }
-
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => setSelectedTenderId(item.id)}
-                      className={`p-3.5 rounded-lg border cursor-pointer transition-colors relative ${
-                        isSelected
-                          ? 'bg-[#151926] border-emerald-500/80'
-                          : 'bg-[#11141E] border-white/[0.06] hover:border-white/[0.12] hover:bg-[#141722]'
-                      }`}
+            {/* Grid details */}
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">Référence PMMP :</span>
+                <div className="font-mono font-bold text-slate-900 dark:text-white mt-0.5 flex items-center justify-between">
+                  <span>{selectedTender.externalRef || 'N/A'}</span>
+                  {selectedTender.externalRef && (
+                    <button
+                      onClick={() => copyText(selectedTender.externalRef || '', 'Référence')}
+                      className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                      title="Copier la référence"
                     >
-                      {/* Top row */}
-                      <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <span className="text-xs font-medium text-slate-300 truncate max-w-[220px]">
-                          {item.clientName}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] text-slate-500 font-mono">
-                            {item.sourceName}
-                          </span>
-                          <span className={`text-[11px] font-mono ${deadlineColor}`}>
-                            {deadlineText}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Title */}
-                      <h3 className="text-xs font-normal text-slate-100 line-clamp-2 leading-relaxed mb-2">
-                        {item.title}
-                      </h3>
-
-                      {/* Bottom row */}
-                      <div className="flex items-center justify-between pt-2 border-t border-white/[0.04] text-[11px] text-slate-500">
-                        <div className="flex items-center gap-1.5 overflow-hidden">
-                          {item.isHighPriority && (
-                            <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-medium">
-                              Prioritaire
-                            </span>
-                          )}
-                          {item.matchedKeywords?.slice(0, 2).map((kw, idx) => (
-                            <span key={idx} className="px-1.5 py-0.5 rounded bg-white/[0.04] text-slate-400 text-[10px]">
-                              {kw}
-                            </span>
-                          ))}
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            onClick={(e) => toggleSave(item.id, e)}
-                            title={isSaved ? 'Retirer des favoris' : 'Enregistrer'}
-                            className={`p-1 rounded hover:bg-white/10 ${isSaved ? 'text-amber-400' : 'text-slate-500'}`}
-                          >
-                            <Bookmark className="w-3 h-3" />
-                          </button>
-                          <span className="font-mono text-[10px] text-slate-500">
-                            {item.externalRef ? `Réf: ${item.externalRef}` : 'N/A'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
-            )}
+
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700">
+                <span className="text-slate-500 dark:text-slate-400">Date Limite de Remise :</span>
+                <div className="font-mono font-bold text-rose-600 dark:text-rose-400 mt-0.5">
+                  {selectedTender.deadline
+                    ? new Date(selectedTender.deadline).toLocaleDateString('fr-FR')
+                    : 'Non précisée'}
+                </div>
+              </div>
+            </div>
+
+            {/* Matched Keywords */}
+            <div>
+              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                Mots-clés Détectés :
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {selectedTender.matchedKeywords?.map((kw, i) => (
+                  <span
+                    key={i}
+                    className="px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60"
+                  >
+                    {kw}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions Bar */}
+            <div className="flex items-center gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <a
+                href={selectedTender.directUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs"
+              >
+                <Download className="w-4 h-4" />
+                <span>Télécharger le Dossier DCE sur PMMP</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+
+              <button
+                onClick={() => openWhatsApp(selectedTender)}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 transition"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>WhatsApp</span>
+              </button>
+            </div>
           </div>
-
-          {/* DOSSIER (RIGHT) */}
-          <div className="lg:col-span-7 sticky top-20">
-            {selectedTender ? (
-              <div className="p-6 rounded-lg bg-[#11141E] border border-white/[0.08] flex flex-col gap-6">
-                
-                {/* Dossier Header */}
-                <div className="flex flex-col gap-2 pb-4 border-b border-white/[0.06]">
-                  <div className="flex items-center justify-between gap-3 text-xs">
-                    <span className="text-slate-400 font-medium">
-                      {selectedTender.clientName}
-                    </span>
-                    <span className="text-slate-500 font-mono">
-                      Source : {selectedTender.sourceName}
-                    </span>
-                  </div>
-
-                  <h2 className="text-base sm:text-lg font-semibold text-white leading-snug">
-                    {selectedTender.title}
-                  </h2>
-
-                  <div className="flex items-center gap-3 pt-1 text-xs text-slate-400">
-                    <span className="font-mono text-slate-400">
-                      Réf : <strong className="text-slate-200">{selectedTender.externalRef || 'Non précisée'}</strong>
-                    </span>
-                    {selectedTender.externalRef && (
-                      <button
-                        onClick={() => copyText(selectedTender.externalRef || '', 'ref', 'Référence')}
-                        className="text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
-                        title="Copier la référence"
-                      >
-                        {copiedKey === 'ref' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Key Metadata Table */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-                  <div className="p-3 rounded-md bg-white/[0.02] border border-white/[0.04]">
-                    <div className="text-slate-500 text-[11px]">Date de publication</div>
-                    <div className="text-slate-200 font-mono mt-0.5">
-                      {selectedTender.publicationDate
-                        ? new Date(selectedTender.publicationDate).toLocaleDateString('fr-FR')
-                        : 'Non spécifiée'}
-                    </div>
-                  </div>
-
-                  <div className="p-3 rounded-md bg-white/[0.02] border border-white/[0.04]">
-                    <div className="text-slate-500 text-[11px]">Date limite de remise</div>
-                    <div className="text-slate-200 font-mono mt-0.5">
-                      {selectedTender.deadline
-                        ? new Date(selectedTender.deadline).toLocaleDateString('fr-FR')
-                        : 'Non spécifiée'}
-                    </div>
-                  </div>
-
-                  <div className="p-3 rounded-md bg-white/[0.02] border border-white/[0.04]">
-                    <div className="text-slate-500 text-[11px]">Niveau d'adéquation</div>
-                    <div className="text-emerald-400 font-medium mt-0.5">
-                      {selectedTender.isHighPriority ? 'Forte adéquation (Prioritaire)' : 'Standard'}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Keywords & Scope */}
-                <div className="flex flex-col gap-2">
-                  <div className="text-xs text-slate-400 font-medium">Mots-clés et compétences détectés :</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedTender.matchedKeywords?.map((kw, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2.5 py-1 rounded bg-white/[0.04] border border-white/[0.06] text-slate-300 text-xs"
-                      >
-                        {kw}
-                      </span>
-                    ))}
-                    {(!selectedTender.matchedKeywords || selectedTender.matchedKeywords.length === 0) && (
-                      <span className="text-xs text-slate-500">Non catégorisé</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Submission note */}
-                <div className="p-4 rounded-md bg-white/[0.02] border border-white/[0.04] text-xs text-slate-400 leading-relaxed">
-                  <span className="font-medium text-slate-300 block mb-1">Recommandation de préparation :</span>
-                  Consultez attentivement le règlement de consultation dans le DCE pour identifier le montant du cautionnement provisoire et les attestations d’agrément requises (notamment pour les prestations de cybersécurité, audits PASSI ou intégrations réseau).
-                </div>
-
-                {/* Actions */}
-                <div className="flex flex-wrap items-center gap-3 pt-2">
-                  <a
-                    href={selectedTender.directUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 rounded-md bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-semibold transition-colors cursor-pointer"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Accéder au DCE</span>
-                    <ArrowUpRight className="w-3.5 h-3.5 opacity-70" />
-                  </a>
-
-                  <button
-                    onClick={() => openWhatsApp(selectedTender)}
-                    className="flex items-center gap-2 px-3.5 py-2 rounded-md bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-slate-200 text-xs font-medium transition-colors cursor-pointer"
-                  >
-                    <Share2 className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Partager sur WhatsApp</span>
-                  </button>
-
-                  <button
-                    onClick={() => copyText(generateWhatsAppMessage(selectedTender), 'pitch', 'Fiche')}
-                    className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/[0.04] text-slate-400 hover:text-slate-200 text-xs transition-colors cursor-pointer"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copier la synthèse</span>
-                  </button>
-                </div>
-
-              </div>
-            ) : (
-              <div className="p-12 text-center bg-[#11141E] rounded-lg border border-white/[0.06] text-slate-500 text-xs">
-                Sélectionnez un appel d'offres pour afficher ses détails.
-              </div>
-            )}
-          </div>
-
         </div>
+      )}
 
-      </div>
-
-      {/* MINIMAL FOOTER */}
-      <footer className="border-t border-white/[0.06] py-3 text-xs text-slate-500 text-center">
-        Plateforme CyberRFP Maroc — Données synchronisées avec les portails officiels
+      {/* FOOTER */}
+      <footer className="border-t border-slate-200 dark:border-slate-800 py-4 text-xs text-slate-500 text-center bg-white dark:bg-slate-900">
+        CyberRFP Maroc — Veille Spécialisée Appels d'Offres Publics PMMP
       </footer>
     </div>
   );

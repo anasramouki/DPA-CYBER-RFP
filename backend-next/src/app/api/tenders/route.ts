@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { ilike, or, eq, desc, and, sql, count } from 'drizzle-orm';
+import { ilike, or, eq, desc, and, sql, count, gt } from 'drizzle-orm';
 import { getDb } from '@/db';
 import { tenders as tendersTable, sources as sourcesTable } from '@/db/schema';
 import { apiSuccess } from '@/lib/http';
@@ -19,6 +19,9 @@ export async function GET(request: NextRequest) {
   const db = getDb();
 
   const conditions = [];
+
+  // Strictly require positive cyber relevance (reject construction, transport, civil works, etc.)
+  conditions.push(gt(tendersTable.relevanceScore, 0));
 
   if (search) {
     conditions.push(

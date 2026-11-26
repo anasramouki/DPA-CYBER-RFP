@@ -5,51 +5,124 @@ export const DEFAULT_CYBER_KEYWORDS = [
   'cybersécurité',
   'cybersecurite',
   'cyber',
-  'informatique',
+  'sécurité informatique',
+  'securite informatique',
+  'sécurité des systèmes d\'information',
+  'securite des systemes d\'information',
+  'sécurité du système d\'information',
+  'securite du systeme d\'information',
   'soc',
+  'siem',
   'dlp',
   'forcepoint',
   'endpoint',
   'data classification',
+  'protection des données',
+  'protection des donnees',
+  'protection des bases de données',
   'firewall',
   'pare-feu',
-  'siem',
+  'pare feu',
   'edr',
   'xdr',
   'antivirus',
   'sauvegarde',
   'backup',
-  'sécurité des systèmes d\'information',
-  'securite',
   'audit de sécurité',
+  'audit de securite',
   'pentest',
+  'test d\'intrusion',
   'intrusion',
   'datacenter',
-  'serveur',
-  'réseau',
-  'reseau',
   'chiffrement',
   'cryptographie',
   'iam',
   'pam',
   'bastion',
+  'waf',
+  'proxy',
+  'packet broker',
+  'solution de protection',
+  'infrastructure réseau',
+  'reseau informatique',
+  'réseau informatique',
+  'switch',
+  'routeur',
+  'vpn',
 ];
 
 export const HIGH_PRIORITY_KEYWORDS = [
   'cybersécurité',
   'cybersecurite',
   'soc',
+  'siem',
   'dlp',
   'forcepoint',
   'endpoint',
   'data classification',
-  'siem',
   'edr',
   'xdr',
   'pare-feu',
   'firewall',
   'audit de sécurité',
+  'audit de securite',
   'pentest',
+  'test d\'intrusion',
+  'protection des bases de données',
+];
+
+// Strict non-cyber blacklist keywords (construction, transport, civil engineering, etc.)
+export const EXCLUDED_NON_CYBER_KEYWORDS = [
+  'construction',
+  'travaux',
+  'bâtiment',
+  'batiment',
+  'génie civil',
+  'genie civil',
+  'peinture',
+  'revetement',
+  'revêtement',
+  'menuiserie',
+  'faux plafond',
+  'plomberie',
+  'autobus',
+  'bus',
+  'transport',
+  'véhicule',
+  'vehicule',
+  'chaussures',
+  'habillement',
+  'tenue',
+  'uniforme',
+  'conduite forcée',
+  'conduite forcee',
+  'arasage',
+  'soudures',
+  'voirie',
+  'assainissement',
+  'eau potable',
+  'step',
+  'route',
+  'autoroute',
+  'piste',
+  'pont',
+  'ouvrage d\'art',
+  'gardiennage',
+  'nettoyage',
+  'fourniture de bureau',
+  'carburant',
+  'dératisation',
+  'engins',
+  'poids lourd',
+  'médicaments',
+  'medicaments',
+  'réhabilitation',
+  'rehabilitation',
+  'aménagement',
+  'amenagement',
+  'terrassement',
+  'déchets',
+  'dechets',
 ];
 
 const FRENCH_MONTHS: Record<string, number> = {
@@ -155,23 +228,82 @@ export function generateDedupHash(sourceSlug: string, externalRefOrUrl: string, 
   return crypto.createHash('sha256').update(input, 'utf8').digest('hex');
 }
 
-export function matchKeywords(text: string, customKeywords?: string[]): KeywordMatchResult {
-  const lowerText = text.toLowerCase();
+/**
+ * Precision Cyber & IT Security classifier.
+ * Matches keywords strictly against the title/object of the tender (NOT the buyer name).
+ * Explicitly rejects non-cyber / construction / transport tenders.
+ */
+export function matchKeywords(title: string, customKeywords?: string[]): KeywordMatchResult {
+  const lowerTitle = title.toLowerCase();
+
+  // 1. Check for immediate non-cyber exclusion
+  const hasExcludedKeyword = EXCLUDED_NON_CYBER_KEYWORDS.some((exKw) => {
+    const escaped = exKw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(?:^|[\\s,;:'"()/-])${escaped}(?:$|[\\s,;:'"()/-])`, 'i');
+    return regex.test(lowerTitle);
+  });
+
+  // 2. Strong cyber check that overrides exclusion only if unequivocally technical security
+  const strongCyberTerms = [
+    'cybersécurité',
+    'cybersecurite',
+    'pare-feu',
+    'firewall',
+    'siem',
+    'edr',
+    'xdr',
+    'antivirus',
+    'audit de sécurité',
+    'pentest',
+    'test d\'intrusion',
+    'protection des bases de données',
+    'packet broker',
+  ];
+  const hasStrongCyber = strongCyberTerms.some((term) => lowerTitle.includes(term));
+
+  if (hasExcludedKeyword && !hasStrongCyber) {
+    return {
+      matchedKeywords: [],
+      relevanceScore: 0,
+      isHighPriority: false,
+    };
+  }
+
+  // 3. Match legitimate cyber keywords using strict word boundaries
   const allKeywords = customKeywords && customKeywords.length > 0 ? customKeywords : DEFAULT_CYBER_KEYWORDS;
   const matched = new Set<string>();
 
   for (const kw of allKeywords) {
     const cleanKw = kw.toLowerCase().trim();
     if (cleanKw.length === 0) continue;
-    // Word boundary or substring for acronyms like SOC, DLP, EDR
+
     const escaped = cleanKw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Strict word boundary check (never substring inside words like "société" for "soc")
     const regex = new RegExp(`(?:^|[\\s,;:'"()/-])${escaped}(?:$|[\\s,;:'"()/-])`, 'i');
-    if (regex.test(lowerText) || lowerText.includes(cleanKw)) {
-      matched.add(cleanKw);
+
+    if (cleanKw.length <= 4) {
+      // Short acronyms (soc, dlp, edr, iam, pam, waf, vpn): STRICT word boundary only!
+      if (regex.test(lowerTitle)) {
+        matched.add(cleanKw);
+      }
+    } else {
+      // Longer terms
+      if (regex.test(lowerTitle) || lowerTitle.includes(cleanKw)) {
+        matched.add(cleanKw);
+      }
     }
   }
 
   const matchedKeywords = Array.from(matched);
+
+  if (matchedKeywords.length === 0) {
+    return {
+      matchedKeywords: [],
+      relevanceScore: 0,
+      isHighPriority: false,
+    };
+  }
+
   const isHighPriority = matchedKeywords.some((kw) =>
     HIGH_PRIORITY_KEYWORDS.includes(kw.toLowerCase())
   );

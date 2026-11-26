@@ -58,11 +58,16 @@ export class ScrapingOrchestrator {
     let highPriorityCount = 0;
 
     for (const item of result.tenders) {
-      const fullText = `${item.title} ${item.clientName} ${item.category || ''}`;
+      // Classify strictly by technical object/title
       const { matchedKeywords, relevanceScore, isHighPriority } = matchKeywords(
-        fullText,
+        item.title,
         customKeywords
       );
+
+      // Skip non-cyber tenders (construction, transport, civil works, shoes, etc.)
+      if (relevanceScore <= 0 || matchedKeywords.length === 0) {
+        continue;
+      }
 
       const dedupHash = generateDedupHash(
         slug,

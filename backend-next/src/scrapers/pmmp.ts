@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 import { IScraper, ScraperResult, ScrapedTender } from './types';
-import { cleanText, parseMoroccanDate } from './utils';
+import { cleanText, parseMoroccanDate, matchKeywords } from './utils';
 
 export class PMMPScraper implements IScraper {
   slug = 'pmmp';
@@ -42,18 +42,19 @@ export class PMMPScraper implements IScraper {
             ? (href.startsWith('http') ? href : `${this.baseUrl}/${href.replace(/^\//, '')}`)
             : `${this.baseUrl}/?page=entreprise.EntrepriseAdvancedSearch`;
 
-          if (rawTitle.length > 5) {
+          const match = matchKeywords(rawTitle);
+          if (rawTitle.length > 5 && match.relevanceScore > 0 && match.matchedKeywords.length > 0) {
             tenders.push({
               externalRef: ref,
               title: rawTitle,
               clientName,
               clientNormalized: clientName.toUpperCase().slice(0, 50),
-              category: 'Services',
+              category: 'Cybersécurité & IT',
               publicationDate: new Date(),
               deadline,
               directUrl,
               status: 'open',
-              rawMetadata: { source: 'pmmp-live' },
+              rawMetadata: { source: 'pmmp-live', matchedKeywords: match.matchedKeywords },
             });
           }
         });

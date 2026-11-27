@@ -23,6 +23,7 @@ import {
   FileText,
   AlertCircle,
   Bookmark,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 interface TenderItem {
@@ -50,7 +51,7 @@ export default function OriginalStyleApp() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
-  const [activeTab, setActiveTab] = useState<'all' | 'cyber' | 'priority' | 'pipeline'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'cyber' | 'priority' | 'pipeline' | 'urgent'>('all');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedTender, setSelectedTender] = useState<TenderItem | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
@@ -127,6 +128,78 @@ export default function OriginalStyleApp() {
     showToast(`✓ ${label} copié !`);
   };
 
+  const exportToCSV = () => {
+    if (filteredTenders.length === 0) {
+      showToast("Aucun appel d'offres à exporter");
+      return;
+    }
+    const headers = ['Référence PMMP', 'Acheteur Public', 'Objet du Marché', 'Date Limite', 'Délai', 'Lien Consultation PMMP'];
+    const rows = filteredTenders.map((t) => {
+      const days = getDaysDiff(t.deadline);
+      const daysStr = days !== null ? (days < 0 ? 'Expiré' : `J-${days}`) : 'Non précisé';
+      const deadlineStr = t.deadline ? new Date(t.deadline).toLocaleDateString('fr-FR') : 'Non précisée';
+      return [
+        `"${(t.externalRef || '').replace(/"/g, '""')}"`,
+        `"${cleanClientName(t.clientName).replace(/"/g, '""')}"`,
+        `"${formatCleanTitle(t.title).replace(/"/g, '""')}"`,
+        `"${deadlineStr}"`,
+        `"${daysStr}"`,
+        `"${t.directUrl}"`,
+      ];
+    });
+    const csvContent = '\uFEFF' + [headers.join(';'), ...rows.map((r) => r.join(';'))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `DPA_CyberRFP_Export_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`✓ ${filteredTenders.length} marchés exportés en fichier CSV/Excel`);
+  };
+
+  const copyExecutiveSummary = () => {
+    if (filteredTenders.length === 0) {
+      showToast("Aucun appel d'offres à synthétiser");
+      return;
+    }
+    const headerTitle =
+      activeTab === 'cyber'
+        ? "Cybersécurité & SSI"
+        : activeTab === 'priority'
+        ? "Acheteurs Stratégiques"
+        : activeTab === 'urgent'
+        ? "Échéances Imminentes (< 7J)"
+        : activeTab === 'pipeline'
+        ? "Pipeline Commercial"
+        : "Marchés Publics PMMP";
+
+    const lines = [
+      `🛡️ *DPA CYBER-RFP — Synthèse ${headerTitle} (${filteredTenders.length} marchés)*`,
+      `📅 *Date :* ${new Date().toLocaleDateString('fr-FR')}`,
+      `🏛️ *Source :* Portail Marocain des Marchés Publics (PMMP)`,
+      '',
+      ...filteredTenders.slice(0, 20).map((t, idx) => {
+        const days = getDaysDiff(t.deadline);
+        const deadlineStr = t.deadline ? new Date(t.deadline).toLocaleDateString('fr-FR') : 'Non précisée';
+        const urgencyTag = days !== null ? (days <= 5 ? ` [🚨 J-${days}]` : ` [J-${days}]`) : '';
+        return (
+          `${idx + 1}. *${cleanClientName(t.clientName)}*${urgencyTag}\n` +
+          `   📌 *Réf :* ${t.externalRef || 'N/A'} · ⏳ *Échéance :* ${deadlineStr}\n` +
+          `   📑 *Objet :* ${formatCleanTitle(t.title)}\n` +
+          `   🔗 ${t.directUrl}\n`
+        );
+      }),
+    ];
+
+    if (filteredTenders.length > 20) {
+      lines.push(`... et ${filteredTenders.length - 20} autres consultations sur la plateforme.`);
+    }
+
+    navigator.clipboard.writeText(lines.join('\n'));
+    showToast(`✓ Synthèse (${filteredTenders.length} AO) copiée dans le presse-papier !`);
+  };
+
   const toggleTrack = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSavedIds((prev) => {
@@ -193,8 +266,14 @@ export default function OriginalStyleApp() {
     return tenders.filter((t) => {
       if (activeTab === 'priority' && !t.isHighPriority) return false;
       if (activeTab === 'pipeline' && !savedIds.has(t.id)) return false;
+      if (activeTab === 'urgent') {
+        const d = getDaysDiff(t.deadline);
+        if (d === null || d < 0 || d > 7) return false;
+      }
 
       const allWords = `${t.title} ${t.clientName} ${t.externalRef || ''} ${(t.matchedKeywords || []).join(' ')}`.toLowerCase();
+      const cleanClient = cleanClientName(t.clientName).toLowerCase();
+      const cleanT = formatCleanTitle(t.title).toLowerCase();
 
       if (activeTab === 'cyber') {
         const isCyber =
@@ -212,7 +291,7 @@ export default function OriginalStyleApp() {
 
       if (search.trim()) {
         const q = search.toLowerCase();
-        if (!allWords.includes(q)) return false;
+        if (!allWords.includes(q) && !cleanClient.includes(q) && !cleanT.includes(q)) return false;
       }
 
       return true;
@@ -247,12 +326,12 @@ export default function OriginalStyleApp() {
     const days = getDaysDiff(tender.deadline);
     const deadlineStr = tender.deadline ? new Date(tender.deadline).toLocaleDateString('fr-FR') : 'Non précisée';
     const text = `🚨 *Appel d'Offres PMMP Maroc*\n` +
-      `🏛️ *Acheteur :* ${tender.clientName}\n` +
+      `🏛️ *Acheteur :* ${cleanClientName(tender.clientName)}\n` +
       `📌 *Réf :* ${tender.externalRef || 'N/A'}\n` +
-      `📑 *Objet :* ${tender.title}\n` +
+      `📑 *Objet :* ${formatCleanTitle(tender.title)}\n` +
       `⏳ *Date limite :* ${deadlineStr} ${days !== null ? `(J-${days})` : ''}\n` +
       `🔗 *Lien DCE :* ${tender.directUrl}\n\n` +
-      `_Veille CyberRFP Maroc_`;
+      `_Veille DPA CYBER-RFP_`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -298,7 +377,7 @@ export default function OriginalStyleApp() {
                 }`}
               >
                 <Layers className="w-3.5 h-3.5 text-orange-400" />
-                <span>Toutes les Offres ({tenders.length})</span>
+                <span>Toutes ({tenders.length})</span>
               </button>
 
               <button
@@ -310,7 +389,7 @@ export default function OriginalStyleApp() {
                 }`}
               >
                 <Shield className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Cybersécurité & SSI ({cyberCount})</span>
+                <span>Cybersécurité ({cyberCount})</span>
               </button>
 
               <button
@@ -322,7 +401,19 @@ export default function OriginalStyleApp() {
                 }`}
               >
                 <Star className="w-3.5 h-3.5 text-amber-500" />
-                <span>Acheteurs Prioritaires ({priorityCount})</span>
+                <span>Acheteurs Cibles ({priorityCount})</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('urgent')}
+                className={`px-3 py-1.5 rounded-lg flex items-center space-x-1.5 transition ${
+                  activeTab === 'urgent'
+                    ? 'text-white bg-rose-600 shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <Clock className="w-3.5 h-3.5 text-rose-400" />
+                <span>Urgents &lt; 7J ({urgentCount})</span>
               </button>
 
               <button
@@ -334,7 +425,7 @@ export default function OriginalStyleApp() {
                 }`}
               >
                 <Kanban className="w-3.5 h-3.5 text-blue-500" />
-                <span>Pipeline Commercial ({savedIds.size})</span>
+                <span>Pipeline ({savedIds.size})</span>
               </button>
             </nav>
 
@@ -365,39 +456,71 @@ export default function OriginalStyleApp() {
       </header>
 
       {/* MAIN CONTENT AREA */}
-      <main className="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col gap-6">
+      <main className="max-w-[1720px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col gap-5">
         
-        {/* STATS OVERVIEW CARDS */}
+        {/* STATS OVERVIEW CARDS (INTERACTIVE & CLICKABLE) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+          <button
+            type="button"
+            onClick={() => setActiveTab('all')}
+            className={`text-left p-4 rounded-xl transition-all cursor-pointer shadow-2xs border ${
+              activeTab === 'all'
+                ? 'bg-slate-100/80 dark:bg-slate-800/80 border-slate-400 dark:border-slate-500 ring-2 ring-slate-400/20'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+            }`}
+          >
             <div className="text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">Marchés Indexés</div>
             <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">{tenders.length}</div>
             <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1 font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               Flux PMMP direct
             </div>
-          </div>
+          </button>
 
-          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+          <button
+            type="button"
+            onClick={() => setActiveTab('cyber')}
+            className={`text-left p-4 rounded-xl transition-all cursor-pointer shadow-2xs border ${
+              activeTab === 'cyber'
+                ? 'bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-500 ring-2 ring-emerald-500/20'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-900'
+            }`}
+          >
             <div className="text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">Cybersécurité</div>
             <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{cyberCount}</div>
             <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">SOC, SIEM, EDR, Audit</div>
-          </div>
+          </button>
 
-          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+          <button
+            type="button"
+            onClick={() => setActiveTab('priority')}
+            className={`text-left p-4 rounded-xl transition-all cursor-pointer shadow-2xs border ${
+              activeTab === 'priority'
+                ? 'bg-amber-50/70 dark:bg-amber-950/40 border-amber-500 ring-2 ring-amber-500/20'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-900'
+            }`}
+          >
             <div className="text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">Acheteurs Cibles</div>
             <div className="text-2xl font-black text-amber-500 mt-1">{priorityCount}</div>
             <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Ministères & Banques</div>
-          </div>
+          </button>
 
-          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
+          <button
+            type="button"
+            onClick={() => setActiveTab('urgent')}
+            className={`text-left p-4 rounded-xl transition-all cursor-pointer shadow-2xs border ${
+              activeTab === 'urgent'
+                ? 'bg-rose-50/70 dark:bg-rose-950/40 border-rose-500 ring-2 ring-rose-500/20'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-rose-300 dark:hover:border-rose-900'
+            }`}
+          >
             <div className="text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">Échéances &lt; 7J</div>
             <div className="text-2xl font-black text-rose-500 mt-1">{urgentCount}</div>
             <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Remise imminente</div>
-          </div>
+          </button>
         </div>
 
-        {/* SEARCH & FILTERS BAR */}
+        {/* SEARCH & ACTIONS BAR */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -405,18 +528,53 @@ export default function OriginalStyleApp() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher par organisme, mot-clé, référence PMMP..."
-              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 transition-colors"
+              placeholder="Rechercher par acheteur, référence PMMP, mot-clé (SOC, Firewall, CNSS, DGI...)"
+              className="w-full pl-9 pr-9 py-2 text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 transition-colors"
             />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+                title="Effacer la recherche"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Executive Quick Actions */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Quick Export to CSV/Excel */}
+            <button
+              onClick={exportToCSV}
+              className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition border border-slate-200 dark:border-slate-700 cursor-pointer"
+              title="Exporter les marchés filtrés au format Excel / CSV"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span className="hidden sm:inline">Exporter</span>
+              <span>CSV</span>
+            </button>
+
+            {/* Quick Copy Executive Summary */}
+            <button
+              onClick={copyExecutiveSummary}
+              className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-2xs cursor-pointer"
+              title="Copier une synthèse formatée des marchés pour WhatsApp ou Email"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Copier</span>
+              <span>Synthèse</span>
+            </button>
           </div>
 
           {/* Quick tab chips for mobile/tablets */}
           <div className="flex lg:hidden items-center gap-1.5 overflow-x-auto pb-1 text-xs">
             {[
-              { id: 'all', label: 'Toutes' },
-              { id: 'cyber', label: 'Cyber' },
-              { id: 'priority', label: 'Prioritaires' },
-              { id: 'pipeline', label: 'Pipeline' },
+              { id: 'all', label: `Toutes (${tenders.length})` },
+              { id: 'cyber', label: `Cyber (${cyberCount})` },
+              { id: 'priority', label: `Cibles (${priorityCount})` },
+              { id: 'urgent', label: `Urgents (${urgentCount})` },
+              { id: 'pipeline', label: `Pipeline (${savedIds.size})` },
             ].map((t) => (
               <button
                 key={t.id}
@@ -431,6 +589,28 @@ export default function OriginalStyleApp() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* RESULTS HEADER & COUNTER */}
+        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium px-1">
+          <div className="flex items-center gap-2">
+            <span>
+              Affichage de <span className="font-bold text-slate-900 dark:text-white">{filteredTenders.length}</span> appel{filteredTenders.length > 1 ? 's' : ''} d'offres
+            </span>
+            {activeTab !== 'all' && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] bg-slate-200/80 dark:bg-slate-800 font-semibold text-slate-700 dark:text-slate-300">
+                Filtre : {activeTab === 'cyber' ? 'Cybersécurité' : activeTab === 'priority' ? 'Acheteurs Cibles' : activeTab === 'urgent' ? 'Urgents < 7J' : 'Pipeline'}
+              </span>
+            )}
+          </div>
+          {(filteredTenders.length !== tenders.length || search) && (
+            <button
+              onClick={() => { setActiveTab('all'); setSearch(''); }}
+              className="text-emerald-600 dark:text-emerald-400 hover:underline text-[11px] font-semibold cursor-pointer"
+            >
+              Réinitialiser les filtres
+            </button>
+          )}
         </div>
 
         {/* CARD GRID (ORIGINAL card-modern STYLE) */}

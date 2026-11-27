@@ -103,7 +103,7 @@ const I18N = {
     kpi_downloaded_badge: "Sous Alerte",
 
     // Search & Filters
-    search_placeholder: "Rechercher par mot-clé, référence, acheteur (ex: SOC, ANRT, Al Barid...)",
+    search_placeholder: "Rechercher par mot-clé, référence, acheteur (ex: SOC, ANRT, CNSS, DGSSI...)",
     btn_search: "Rechercher",
     btn_filters: "Filtres",
     txt_filter_by: "Filtrer par :",
@@ -606,7 +606,6 @@ function setLanguage(lang) {
     for (let opt of srcSelect.options) {
       if (opt.value === "PMMP") opt.textContent = lang === 'en' ? "National Portal (PMMP / TGR)" : (lang === 'ar' ? "البوابة الوطنية للمشتريات العمومية" : "Portail National (PMMP / TGR)");
       else if (opt.value === "Presse / Journal") opt.textContent = lang === 'en' ? "📰 Press & Official Journals" : (lang === 'ar' ? "📰 الصحف والجرائد الرسمية" : "📰 Presse & Journaux (Le Matin, L'Économiste)");
-      else if (opt.value === "Al Barid Bank") opt.textContent = lang === 'en' ? "Al Barid Bank (ESOP)" : (lang === 'ar' ? "البريد بنك" : "Al Barid Bank (ESOP)");
     }
   }
 
@@ -2710,11 +2709,10 @@ async function triggerSingleScraper(cid) {
 }
 
 async function triggerAllScrapers() {
-  showToast("Lancement de la collecte globale sur tous les portails...", "info");
+  showToast("Lancement de la collecte PMMP en direct...", "info");
   try {
     await triggerSingleScraper("pmmp");
-    await triggerSingleScraper("albaridbank");
-    showToast("Collecte complète terminée avec succès !", "success");
+    showToast("Collecte PMMP terminée avec succès !", "success");
   } catch (err) {
     showToast(`Erreur : ${err.message}`, "error");
   }
